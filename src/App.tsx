@@ -6,6 +6,7 @@ import AuthPage from "./pages/AuthPage";
 import AppShell from "./pages/AppShell";
 import Overview from "./pages/Overview";
 import MasterDataPage from "./pages/MasterDataPage";
+import PlannerPage from "./pages/PlannerPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient({
@@ -27,7 +28,7 @@ export default function App() {
               }
             >
               <Route path="/" element={<Overview />} />
-              <Route path="/planner" element={<Placeholder title="Promotion Planner" stage="Stage 5" />} />
+              <Route path="/planner" element={<PlannerPage />} />
               <Route path="/evaluations" element={<Placeholder title="Post-Promotion Evaluation" stage="Stage 7" />} />
               <Route path="/scenarios" element={<Placeholder title="Scenario Comparison" stage="Stage 8" />} />
               <Route path="/channels" element={<Placeholder title="Channel Comparison" stage="Stage 9" />} />
