@@ -374,15 +374,13 @@ create policy pp_delete on promotion_plans for delete using (
   has_org_role(organization_id, array['owner','admin']::org_role[])
 );
 
--- Brand/channel scoping example (viewer restricted to assigned brands):
-create policy pp_scoped_brand on promotion_plans for select using (
-  is_org_member(organization_id) and (
-    (select coalesce(allowed_brand_ids,'{}') from organization_members
-      where organization_id = promotion_plans.organization_id and user_id = auth.uid()) = '{}'
-    or brand_id = any(
-      (select allowed_brand_ids from organization_members
-        where organization_id = promotion_plans.organization_id and user_id = auth.uid()))
-  )
+-- Brand/channel scoping example (viewer restricted to assigned brands).
+-- NOTE: the ANY argument must be a scalar array expression, not a bare sub-select,
+-- else Postgres uses the subquery form and errors with uuid = uuid[]. Use a helper
+-- (see my_allowed_brands in the RLS migration) that returns uuid[]:
+create policy pp_scoped_brand on promotion_plans as restrictive for select using (
+  my_allowed_brands(organization_id) = '{}'::uuid[]
+  or brand_id = any(my_allowed_brands(organization_id))
 );
 -- NOTE: the migration enables RLS + org-member policies on every table listed above.
 -- Master data: read = any member; write = admin/manager roles. Settings/integrations = owner/admin only.

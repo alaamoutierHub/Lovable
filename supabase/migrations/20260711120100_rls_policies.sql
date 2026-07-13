@@ -138,23 +138,33 @@ create policy notifications_select on notifications for select
 -- Applied as an ADDITIONAL restrictive policy on promotion_plans.
 -- If allowed_brand_ids is NULL/empty => full access; else must match.
 -- =====================================================================
+-- Helpers return the current user's allowed id array for an org (empty => "all").
+-- Using a scalar-array-returning function makes `= any(...)` unambiguously the
+-- ARRAY form (uuid = any(uuid[])), avoiding the uuid = uuid[] subquery-form error.
+create or replace function my_allowed_brands(org uuid) returns uuid[]
+language sql stable security definer set search_path = public as $$
+  select coalesce(
+    (select allowed_brand_ids from organization_members
+     where organization_id = org and user_id = auth.uid() and deleted_at is null limit 1),
+    '{}'::uuid[]);
+$$;
+create or replace function my_allowed_channels(org uuid) returns uuid[]
+language sql stable security definer set search_path = public as $$
+  select coalesce(
+    (select allowed_channel_ids from organization_members
+     where organization_id = org and user_id = auth.uid() and deleted_at is null limit 1),
+    '{}'::uuid[]);
+$$;
+
 drop policy if exists pp_brand_scope on promotion_plans;
 create policy pp_brand_scope on promotion_plans as restrictive for select using (
-  coalesce((select allowed_brand_ids from organization_members
-            where organization_id = promotion_plans.organization_id
-              and user_id = auth.uid() and deleted_at is null), '{}') = '{}'
-  or brand_id = any((select allowed_brand_ids from organization_members
-            where organization_id = promotion_plans.organization_id
-              and user_id = auth.uid() and deleted_at is null))
+  my_allowed_brands(organization_id) = '{}'::uuid[]
+  or brand_id = any(my_allowed_brands(organization_id))
 );
 drop policy if exists pp_channel_scope on promotion_plans;
 create policy pp_channel_scope on promotion_plans as restrictive for select using (
-  coalesce((select allowed_channel_ids from organization_members
-            where organization_id = promotion_plans.organization_id
-              and user_id = auth.uid() and deleted_at is null), '{}') = '{}'
-  or channel_id = any((select allowed_channel_ids from organization_members
-            where organization_id = promotion_plans.organization_id
-              and user_id = auth.uid() and deleted_at is null))
+  my_allowed_channels(organization_id) = '{}'::uuid[]
+  or channel_id = any(my_allowed_channels(organization_id))
 );
 
 -- =====================================================================
