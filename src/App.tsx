@@ -11,6 +11,7 @@ import EvaluationPage from "./pages/EvaluationPage";
 import ScenariosPage from "./pages/ScenariosPage";
 import ChannelComparisonPage from "./pages/ChannelComparisonPage";
 import SkuChannelMatrixPage from "./pages/SkuChannelMatrixPage";
+import BudgetOptimizerPage from "./pages/BudgetOptimizerPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient({
@@ -37,7 +38,7 @@ export default function App() {
               <Route path="/scenarios" element={<ScenariosPage />} />
               <Route path="/channels" element={<ChannelComparisonPage />} />
               <Route path="/matrix" element={<SkuChannelMatrixPage />} />
-              <Route path="/optimizer" element={<Placeholder title="Budget Optimizer" stage="Stage 12" />} />
+              <Route path="/optimizer" element={<BudgetOptimizerPage />} />
               <Route path="/calendar" element={<Placeholder title="Promotion Calendar" stage="Stage 13" />} />
               <Route path="/history" element={<Placeholder title="History" stage="Stage 10" />} />
               <Route path="/reports" element={<Placeholder title="Reports" stage="Stage 15" />} />
