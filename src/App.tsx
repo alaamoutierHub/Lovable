@@ -48,7 +48,7 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <PageviewTracker />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
