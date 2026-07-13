@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Can } from "../components/guards";
 import { Button, Card, Field, Input, Badge } from "../components/ui/primitives";
+import { SettingsTabs } from "../components/SettingsTabs";
 import {
   MASTER_ENTITIES, MasterEntityKey, useMasterList, useCreateMaster,
   useSoftDeleteMaster, type Row,
@@ -42,10 +43,9 @@ export default function MasterDataPage() {
 
   return (
     <div>
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Master Data</h1>
-        <p className="text-sm text-slate-500">Channels, brands, categories, SKUs, customers and mechanics.</p>
-      </header>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Settings</h1>
+      <SettingsTabs />
+      <p className="mb-4 text-sm text-slate-500">Channels, brands, categories, SKUs, customers and mechanics.</p>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {(Object.keys(MASTER_ENTITIES) as MasterEntityKey[]).map((k) => (
