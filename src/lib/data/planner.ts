@@ -8,13 +8,24 @@ import type { PlannerDecision } from "../planner/decision";
 
 const numOrNull = (c: Calc): number | null => (c.ok ? c.value : null);
 
-/** Flatten the Calc-bearing metric bundle into a plain jsonb-friendly snapshot. */
+/** Flatten the Calc-bearing metric bundle into a plain jsonb-friendly snapshot.
+ *  `raw` carries the un-derived baseline/units so channel/SKU roll-ups can re-derive
+ *  ratios from summed numerators/denominators (finding V9). Promo figures are
+ *  reconstructed from baseline + incremental so they always reconcile. */
 export function serializeCalc(
   metrics: PromoMetrics,
   decision: PlannerDecision,
   decisionReasons: string[],
+  raw?: { baselineRevenue: number | null; baselineUnits: number | null },
 ): Record<string, unknown> {
+  const incrRev = numOrNull(metrics.incrementalRevenue);
+  const incrUnits = numOrNull(metrics.incrementalUnits);
+  const baselineRevenue = raw?.baselineRevenue ?? null;
+  const baselineUnits = raw?.baselineUnits ?? null;
+  const promoRevenue = baselineRevenue != null && incrRev != null ? baselineRevenue + incrRev : null;
+  const promoUnits = baselineUnits != null && incrUnits != null ? baselineUnits + incrUnits : null;
   return {
+    baselineRevenue, baselineUnits, promoRevenue, promoUnits,
     baselineAsp: numOrNull(metrics.baselineAsp),
     promoAsp: numOrNull(metrics.promoAsp),
     incrementalRevenue: numOrNull(metrics.incrementalRevenue),

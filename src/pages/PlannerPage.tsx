@@ -115,7 +115,10 @@ export default function PlannerPage() {
       await savePlan.mutateAsync({
         organizationId: activeOrgId,
         fields,
-        calc: serializeCalc(metrics, decision.decision, decision.reasons),
+        calc: serializeCalc(metrics, decision.decision, decision.reasons, {
+          baselineRevenue: n(f.baselineRevenue),
+          baselineUnits: n(f.baselineUnits),
+        }),
         dq,
       });
       setSaveMsg("Plan saved as draft.");
