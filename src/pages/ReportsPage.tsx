@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
-import { Card, Button } from "../components/ui/primitives";
+import { Card, Button, Badge } from "../components/ui/primitives";
 import { DEFAULT_SETTINGS } from "../lib/calc";
 import { rollup, type RollupRow } from "../lib/calc/rollup";
 import { buildMatrix } from "../lib/matrix/matrix";
@@ -9,6 +9,7 @@ import { scoreCohort, type RecoUnit } from "../lib/reco/engine";
 import { optimizeBudget, type Candidate } from "../lib/optimizer/optimize";
 import { useMatrixPlanRows } from "../lib/data/matrixData";
 import { buildManagementSummary, summaryToEmailText, type SummaryInput } from "../lib/report/summary";
+import { useAiSummary } from "../lib/data/aiSummary";
 
 function downloadText(filename: string, text: string, type = "text/plain") {
   const blob = new Blob([text], { type });
@@ -23,6 +24,7 @@ export default function ReportsPage() {
   const orgName = memberships.find((m) => m.organizationId === activeOrgId)?.organizationName ?? "Organization";
   const rows = useMatrixPlanRows(activeOrgId);
   const [copied, setCopied] = useState(false);
+  const ai = useAiSummary();
 
   const summary = useMemo(() => {
     const data = rows.data ?? [];
@@ -126,6 +128,62 @@ export default function ReportsPage() {
           {summary.actionPlan.map((a, i) => <li key={i}>{a}</li>)}
         </ol>
       </Card>
+
+      <Card className="mt-4 print:hidden">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div>
+            <h3 className="font-semibold">AI narrative</h3>
+            <p className="text-xs text-slate-500">Generated server-side from the computed data above — the model explains, it never recalculates.</p>
+          </div>
+          <Button
+            onClick={() => activeOrgId && ai.mutate({ data: summary, organizationId: activeOrgId })}
+            disabled={ai.isPending}
+          >
+            {ai.isPending ? "Generating…" : ai.data ? "Regenerate" : "Generate AI narrative"}
+          </Button>
+        </div>
+
+        {ai.isError && (
+          <p className="text-sm text-amber-600">
+            {(ai.error as Error).message}
+            {String((ai.error as Error).message).toLowerCase().includes("not configured") &&
+              " — deploy the ai-summary Edge Function and set ANTHROPIC_API_KEY as a Supabase secret."}
+          </p>
+        )}
+
+        {ai.data && (
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-800 dark:text-slate-100">Confidence:</span>
+              <Badge tone={ai.data.confidenceLevel === "high" ? "green" : ai.data.confidenceLevel === "medium" ? "amber" : "red"}>
+                {ai.data.confidenceLevel}
+              </Badge>
+            </div>
+            <p className="text-slate-700 dark:text-slate-200">{ai.data.executiveSummary}</p>
+            <AiList title="Key findings" items={ai.data.keyFindings} />
+            <AiList title="Strongest opportunities" items={ai.data.strongestOpportunities} />
+            <AiList title="Weakest investments" items={ai.data.weakestInvestments} />
+            <AiList title="Recommended budget shifts" items={ai.data.recommendedBudgetShifts} />
+            <AiList title="Risks" items={ai.data.risks} />
+            <AiList title="Recommended actions" items={ai.data.recommendedActions} />
+            <p className="text-slate-700 dark:text-slate-200"><span className="font-medium">Expected directional impact:</span> {ai.data.expectedDirectionalImpact}</p>
+            <AiList title="Data limitations" items={ai.data.dataLimitations} />
+            <p className="text-xs text-slate-400">AI-generated guidance — directional, not a guaranteed outcome.</p>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function AiList({ title, items }: { title: string; items: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <div className="text-xs font-semibold uppercase text-slate-400">{title}</div>
+      <ul className="mt-1 list-inside list-disc text-slate-700 dark:text-slate-200">
+        {items.map((it, i) => <li key={i}>{it}</li>)}
+      </ul>
     </div>
   );
 }
