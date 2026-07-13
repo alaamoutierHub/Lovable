@@ -17,6 +17,7 @@ const PlannerPage = lazy(() => import("./pages/PlannerPage"));
 const EvaluationPage = lazy(() => import("./pages/EvaluationPage"));
 const ScenariosPage = lazy(() => import("./pages/ScenariosPage"));
 const ChannelComparisonPage = lazy(() => import("./pages/ChannelComparisonPage"));
+const MechanicAnalysisPage = lazy(() => import("./pages/MechanicAnalysisPage"));
 const SkuChannelMatrixPage = lazy(() => import("./pages/SkuChannelMatrixPage"));
 const BudgetOptimizerPage = lazy(() => import("./pages/BudgetOptimizerPage"));
 const PromotionCalendarPage = lazy(() => import("./pages/PromotionCalendarPage"));
@@ -63,6 +64,7 @@ export default function App() {
                   <Route path="/evaluations" element={<EvaluationPage />} />
                   <Route path="/scenarios" element={<ScenariosPage />} />
                   <Route path="/channels" element={<ChannelComparisonPage />} />
+                  <Route path="/mechanics" element={<MechanicAnalysisPage />} />
                   <Route path="/matrix" element={<SkuChannelMatrixPage />} />
                   <Route path="/optimizer" element={<BudgetOptimizerPage />} />
                   <Route path="/calendar" element={<PromotionCalendarPage />} />

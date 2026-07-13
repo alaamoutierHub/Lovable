@@ -11,6 +11,7 @@ const NAV: Array<{ to: string; label: string }> = [
   { to: "/evaluations", label: "Evaluations" },
   { to: "/scenarios", label: "Scenarios" },
   { to: "/channels", label: "Channel Comparison" },
+  { to: "/mechanics", label: "Mechanic Analysis" },
   { to: "/matrix", label: "SKU-Channel Matrix" },
   { to: "/optimizer", label: "Budget Optimizer" },
   { to: "/calendar", label: "Promotion Calendar" },
