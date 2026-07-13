@@ -13,6 +13,7 @@ import ChannelComparisonPage from "./pages/ChannelComparisonPage";
 import SkuChannelMatrixPage from "./pages/SkuChannelMatrixPage";
 import BudgetOptimizerPage from "./pages/BudgetOptimizerPage";
 import PromotionCalendarPage from "./pages/PromotionCalendarPage";
+import UploadCenterPage from "./pages/UploadCenterPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient({
@@ -43,7 +44,7 @@ export default function App() {
               <Route path="/calendar" element={<PromotionCalendarPage />} />
               <Route path="/history" element={<Placeholder title="History" stage="Stage 10" />} />
               <Route path="/reports" element={<Placeholder title="Reports" stage="Stage 15" />} />
-              <Route path="/uploads" element={<Placeholder title="Upload Center" stage="Stage 14" />} />
+              <Route path="/uploads" element={<UploadCenterPage />} />
               <Route path="/settings/master-data" element={<MasterDataPage />} />
             </Route>
           </Routes>
