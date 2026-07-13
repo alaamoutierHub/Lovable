@@ -8,6 +8,7 @@ import Overview from "./pages/Overview";
 import MasterDataPage from "./pages/MasterDataPage";
 import PlannerPage from "./pages/PlannerPage";
 import EvaluationPage from "./pages/EvaluationPage";
+import ScenariosPage from "./pages/ScenariosPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient({
@@ -31,7 +32,7 @@ export default function App() {
               <Route path="/" element={<Overview />} />
               <Route path="/planner" element={<PlannerPage />} />
               <Route path="/evaluations" element={<EvaluationPage />} />
-              <Route path="/scenarios" element={<Placeholder title="Scenario Comparison" stage="Stage 8" />} />
+              <Route path="/scenarios" element={<ScenariosPage />} />
               <Route path="/channels" element={<Placeholder title="Channel Comparison" stage="Stage 9" />} />
               <Route path="/matrix" element={<Placeholder title="SKU-Channel Matrix" stage="Stage 10" />} />
               <Route path="/optimizer" element={<Placeholder title="Budget Optimizer" stage="Stage 12" />} />
