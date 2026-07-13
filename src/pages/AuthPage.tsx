@@ -8,7 +8,9 @@ type Mode = "signin" | "signup" | "reset";
 
 export default function AuthPage() {
   const { user, configured, loading } = useAuth();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("signup") ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -17,7 +19,7 @@ export default function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/overview" replace />;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

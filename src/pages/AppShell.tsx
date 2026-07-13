@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase/client";
 import { Button, Card, Field, Input } from "../components/ui/primitives";
 
 const NAV: Array<{ to: string; label: string }> = [
-  { to: "/", label: "Overview" },
+  { to: "/overview", label: "Overview" },
   { to: "/planner", label: "Promotion Planner" },
   { to: "/evaluations", label: "Evaluations" },
   { to: "/scenarios", label: "Scenarios" },

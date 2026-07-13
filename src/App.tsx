@@ -7,9 +7,10 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { configureAnalytics, trackPageview } from "./lib/integrations/analytics";
 import AuthPage from "./pages/AuthPage";
 import AppShell from "./pages/AppShell";
+import LandingPage from "./pages/LandingPage";
 
 // Route-level code splitting — each module loads on demand, keeping the initial
-// bundle small. The app shell + auth stay eager (needed on first paint).
+// bundle small. The app shell + auth + landing stay eager (needed on first paint).
 const Overview = lazy(() => import("./pages/Overview"));
 const MasterDataPage = lazy(() => import("./pages/MasterDataPage"));
 const IntegrationsSettingsPage = lazy(() => import("./pages/IntegrationsSettingsPage"));
@@ -51,6 +52,7 @@ export default function App() {
             <PageviewTracker />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route
                   element={
@@ -59,7 +61,7 @@ export default function App() {
                     </RequireAuth>
                   }
                 >
-                  <Route path="/" element={<Overview />} />
+                  <Route path="/overview" element={<Overview />} />
                   <Route path="/planner" element={<PlannerPage />} />
                   <Route path="/evaluations" element={<EvaluationPage />} />
                   <Route path="/scenarios" element={<ScenariosPage />} />
