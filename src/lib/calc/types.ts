@@ -28,6 +28,8 @@ export interface OrgSettings {
   extremeUpliftPct: number;
   /** Data-quality: ASP dilution above this fraction is flagged extreme (Q13). */
   extremeDilutionPct: number;
+  /** Minimum observations before a combo can be scaled/trusted (guardrail G1). */
+  minObservations: number;
 }
 
 export const DEFAULT_SETTINGS: OrgSettings = {
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   forecastVsPlannedTolerancePct: 0.1,
   extremeUpliftPct: 3.0,
   extremeDilutionPct: 0.6,
+  minObservations: 3,
 };
 
 /** Nullable finite number — anything not a finite number is treated as "missing". */
