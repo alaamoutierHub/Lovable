@@ -15,7 +15,7 @@ import BudgetOptimizerPage from "./pages/BudgetOptimizerPage";
 import PromotionCalendarPage from "./pages/PromotionCalendarPage";
 import UploadCenterPage from "./pages/UploadCenterPage";
 import HistoryPage from "./pages/HistoryPage";
-import Placeholder from "./pages/Placeholder";
+import ReportsPage from "./pages/ReportsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -44,7 +44,7 @@ export default function App() {
               <Route path="/optimizer" element={<BudgetOptimizerPage />} />
               <Route path="/calendar" element={<PromotionCalendarPage />} />
               <Route path="/history" element={<HistoryPage />} />
-              <Route path="/reports" element={<Placeholder title="Reports" stage="Stage 15" />} />
+              <Route path="/reports" element={<ReportsPage />} />
               <Route path="/uploads" element={<UploadCenterPage />} />
               <Route path="/settings/master-data" element={<MasterDataPage />} />
             </Route>
