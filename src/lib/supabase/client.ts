@@ -1,23 +1,21 @@
 // PromoLift — Supabase browser client.
-// Uses the anon key (RLS-gated). NEVER import service-role or provider API keys here.
+// Uses the anon/publishable key (RLS-gated). NEVER import service-role or provider
+// API keys here.
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Public, RLS-gated connection values — safe to ship in the client (the anon key
+// is designed to be public; row-level security enforces access, not key secrecy).
+// Env vars override these, so a different deployment can target a different project;
+// the hardcoded fallback means the app connects on ANY host (Lovable, Vercel,
+// localhost) with no build-time env configuration required.
+const FALLBACK_URL = "https://saqxzeldpwjawvvmxikz.supabase.co";
+const FALLBACK_ANON_KEY = "sb_publishable_GoOamU1wdwgquV_aCcfynQ_-bqoRtI8";
 
-if (!url || !anonKey) {
-  // Non-fatal in dev/preview so the app still boots before Supabase is wired.
-  console.warn(
-    "[PromoLift] Supabase env not set. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY " +
-      "(see .env.example). Auth/data features are disabled until then.",
-  );
-}
+const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || FALLBACK_URL;
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || FALLBACK_ANON_KEY;
 
-export const supabase =
-  url && anonKey
-    ? createClient(url, anonKey, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-      })
-    : null;
+export const supabase = createClient(url, anonKey, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+});
 
 export const isSupabaseConfigured = Boolean(url && anonKey);
