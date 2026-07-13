@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./lib/auth/AuthProvider";
@@ -7,19 +7,22 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { configureAnalytics, trackPageview } from "./lib/integrations/analytics";
 import AuthPage from "./pages/AuthPage";
 import AppShell from "./pages/AppShell";
-import Overview from "./pages/Overview";
-import MasterDataPage from "./pages/MasterDataPage";
-import IntegrationsSettingsPage from "./pages/IntegrationsSettingsPage";
-import PlannerPage from "./pages/PlannerPage";
-import EvaluationPage from "./pages/EvaluationPage";
-import ScenariosPage from "./pages/ScenariosPage";
-import ChannelComparisonPage from "./pages/ChannelComparisonPage";
-import SkuChannelMatrixPage from "./pages/SkuChannelMatrixPage";
-import BudgetOptimizerPage from "./pages/BudgetOptimizerPage";
-import PromotionCalendarPage from "./pages/PromotionCalendarPage";
-import UploadCenterPage from "./pages/UploadCenterPage";
-import HistoryPage from "./pages/HistoryPage";
-import ReportsPage from "./pages/ReportsPage";
+
+// Route-level code splitting — each module loads on demand, keeping the initial
+// bundle small. The app shell + auth stay eager (needed on first paint).
+const Overview = lazy(() => import("./pages/Overview"));
+const MasterDataPage = lazy(() => import("./pages/MasterDataPage"));
+const IntegrationsSettingsPage = lazy(() => import("./pages/IntegrationsSettingsPage"));
+const PlannerPage = lazy(() => import("./pages/PlannerPage"));
+const EvaluationPage = lazy(() => import("./pages/EvaluationPage"));
+const ScenariosPage = lazy(() => import("./pages/ScenariosPage"));
+const ChannelComparisonPage = lazy(() => import("./pages/ChannelComparisonPage"));
+const SkuChannelMatrixPage = lazy(() => import("./pages/SkuChannelMatrixPage"));
+const BudgetOptimizerPage = lazy(() => import("./pages/BudgetOptimizerPage"));
+const PromotionCalendarPage = lazy(() => import("./pages/PromotionCalendarPage"));
+const UploadCenterPage = lazy(() => import("./pages/UploadCenterPage"));
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -34,6 +37,10 @@ function PageviewTracker() {
   return null;
 }
 
+function RouteFallback() {
+  return <div className="p-8 text-sm text-slate-500">Loading…</div>;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -41,30 +48,32 @@ export default function App() {
         <AuthProvider>
           <BrowserRouter>
             <PageviewTracker />
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route
-                element={
-                  <RequireAuth>
-                    <AppShell />
-                  </RequireAuth>
-                }
-              >
-                <Route path="/" element={<Overview />} />
-                <Route path="/planner" element={<PlannerPage />} />
-                <Route path="/evaluations" element={<EvaluationPage />} />
-                <Route path="/scenarios" element={<ScenariosPage />} />
-                <Route path="/channels" element={<ChannelComparisonPage />} />
-                <Route path="/matrix" element={<SkuChannelMatrixPage />} />
-                <Route path="/optimizer" element={<BudgetOptimizerPage />} />
-                <Route path="/calendar" element={<PromotionCalendarPage />} />
-                <Route path="/history" element={<HistoryPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/uploads" element={<UploadCenterPage />} />
-                <Route path="/settings/master-data" element={<MasterDataPage />} />
-                <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
-              </Route>
-            </Routes>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route
+                  element={
+                    <RequireAuth>
+                      <AppShell />
+                    </RequireAuth>
+                  }
+                >
+                  <Route path="/" element={<Overview />} />
+                  <Route path="/planner" element={<PlannerPage />} />
+                  <Route path="/evaluations" element={<EvaluationPage />} />
+                  <Route path="/scenarios" element={<ScenariosPage />} />
+                  <Route path="/channels" element={<ChannelComparisonPage />} />
+                  <Route path="/matrix" element={<SkuChannelMatrixPage />} />
+                  <Route path="/optimizer" element={<BudgetOptimizerPage />} />
+                  <Route path="/calendar" element={<PromotionCalendarPage />} />
+                  <Route path="/history" element={<HistoryPage />} />
+                  <Route path="/reports" element={<ReportsPage />} />
+                  <Route path="/uploads" element={<UploadCenterPage />} />
+                  <Route path="/settings/master-data" element={<MasterDataPage />} />
+                  <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
+                </Route>
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </AuthProvider>
       </QueryClientProvider>
