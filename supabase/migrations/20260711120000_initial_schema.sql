@@ -117,10 +117,19 @@ create table if not exists products (
   brand_id uuid references brands(id), category_id uuid references categories(id),
   sku_code text not null, name text not null, normal_price numeric(18,4), currency char(3),
   listed_at date,
-  is_new boolean generated always as (listed_at is not null and listed_at > (now() - interval '90 days')) stored,
+  -- "new SKU" is derived at query time (listed_at > current_date - interval '90 days');
+  -- intentionally NOT a stored generated column: now() is non-immutable, and a stored
+  -- column would never re-evaluate as time passes. Exposed via the products_with_flags view.
   created_at timestamptz not null default now(), updated_at timestamptz not null default now(), deleted_at timestamptz,
   unique (organization_id, sku_code)
 );
+-- Derived "is_new" flag, evaluated at read time. security_invoker => the view honors
+-- the querying user's RLS on the underlying products table (Postgres 15+ / Supabase).
+create or replace view products_with_flags with (security_invoker = on) as
+  select p.*,
+         (p.listed_at is not null and p.listed_at > (current_date - interval '90 days')) as is_new
+  from products p;
+
 create table if not exists customers (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references organizations(id) on delete cascade,

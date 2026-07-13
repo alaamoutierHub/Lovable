@@ -103,7 +103,7 @@ create table products (           -- SKUs
   organization_id uuid not null references organizations(id) on delete cascade,
   brand_id uuid references brands(id), category_id uuid references categories(id),
   sku_code text not null, name text not null, normal_price numeric(18,4), currency char(3),
-  listed_at date, is_new boolean generated always as (listed_at is not null and listed_at > (now() - interval '90 days')) stored,
+  listed_at date, -- "is_new" derived at read time via products_with_flags view (now() is not immutable, so no generated column)
   created_at timestamptz not null default now(), updated_at timestamptz not null default now(), deleted_at timestamptz,
   unique (organization_id, sku_code)
 );
