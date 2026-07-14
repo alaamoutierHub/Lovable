@@ -13,12 +13,18 @@ export interface Membership {
   allowedChannelIds: string[] | null;
 }
 
+export interface OrgOption { id: string; name: string }
+
 interface AuthState {
   loading: boolean;
   configured: boolean;
   user: User | null;
   session: Session | null;
   memberships: Membership[];
+  /** Organizations shown in the switcher — all orgs for a platform admin, else memberships. */
+  orgOptions: OrgOption[];
+  /** True when this user is a platform (super) admin with cross-tenant read access. */
+  isPlatformAdmin: boolean;
   activeOrgId: string | null;
   setActiveOrgId: (id: string) => void;
   role: OrgRole | null;
@@ -33,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [orgOptions, setOrgOptions] = useState<OrgOption[]>([]);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
 
   async function loadMemberships(userId: string) {
@@ -54,7 +62,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       allowedChannelIds: r.allowed_channel_ids ?? null,
     }));
     setMemberships(rows);
-    setActiveOrgId((cur) => cur ?? rows[0]?.organizationId ?? null);
+
+    // Platform (super) admins see every organization in the switcher.
+    let options: OrgOption[] = rows.map((m) => ({ id: m.organizationId, name: m.organizationName }));
+    let admin = false;
+    try {
+      const { data: pa } = await supabase.rpc("is_platform_admin");
+      admin = pa === true;
+      if (admin) {
+        const { data: orgs } = await supabase
+          .from("organizations").select("id, name").is("deleted_at", null).order("name");
+        options = (orgs ?? []).map((o: any) => ({ id: o.id, name: o.name }));
+      }
+    } catch {
+      /* is_platform_admin not deployed yet — fall back to memberships only */
+    }
+    setIsPlatformAdmin(admin);
+    setOrgOptions(options);
+    setActiveOrgId((cur) => cur ?? options[0]?.id ?? null);
   }
 
   useEffect(() => {
@@ -72,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s?.user) loadMemberships(s.user.id);
       else {
         setMemberships([]);
+        setOrgOptions([]);
+        setIsPlatformAdmin(false);
         setActiveOrgId(null);
       }
     });
@@ -90,6 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     session,
     memberships,
+    orgOptions,
+    isPlatformAdmin,
     activeOrgId,
     setActiveOrgId,
     role: activeMembership?.role ?? null,

@@ -22,22 +22,32 @@ const NAV: Array<{ to: string; label: string }> = [
 ];
 
 export default function AppShell() {
-  const { memberships, activeOrgId, setActiveOrgId, role, user, signOut } = useAuth();
+  const { orgOptions, isPlatformAdmin, activeOrgId, setActiveOrgId, role, user, signOut } = useAuth();
 
-  if (memberships.length === 0) return <CreateOrgOnboarding />;
+  // Platform admins with no org of their own still see every org, so only show
+  // onboarding when there is genuinely nothing to view.
+  if (orgOptions.length === 0) return <CreateOrgOnboarding />;
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4">
-          <div className="text-lg font-bold text-slate-900 dark:text-slate-50">PromoLift</div>
+          <div className="flex items-center gap-2">
+            <div className="text-lg font-bold text-slate-900 dark:text-slate-50">PromoLift</div>
+            {isPlatformAdmin && (
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">Admin</span>
+            )}
+          </div>
+          {isPlatformAdmin && (
+            <div className="mt-1 text-[0.68rem] text-slate-400">All organizations ({orgOptions.length})</div>
+          )}
           <select
             className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
             value={activeOrgId ?? ""}
             onChange={(e) => setActiveOrgId(e.target.value)}
           >
-            {memberships.map((m) => (
-              <option key={m.organizationId} value={m.organizationId}>{m.organizationName}</option>
+            {orgOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.name}</option>
             ))}
           </select>
         </div>
@@ -61,7 +71,7 @@ export default function AppShell() {
         </nav>
         <div className="mt-4 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-800">
           <div className="truncate">{user?.email}</div>
-          <div>{role ? ROLE_LABELS[role] : "—"}</div>
+          <div>{role ? ROLE_LABELS[role] : isPlatformAdmin ? "Platform admin · view-only" : "—"}</div>
           <Button variant="ghost" className="mt-2 w-full" onClick={() => signOut()}>Sign out</Button>
         </div>
       </aside>
