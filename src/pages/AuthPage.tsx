@@ -38,7 +38,9 @@ export default function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          // Return the verify link to the app on whatever origin the user signed
+          // up from (e.g. https://commerly.io/auth), so confirmation lands in-app.
+          options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/auth` },
         });
         if (error) throw error;
         setMsg("Check your email to verify your account, then sign in.");
