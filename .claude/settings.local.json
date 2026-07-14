@@ -14,7 +14,8 @@
       "Bash(echo \"--- TSC EXIT: $? ---\")",
       "Bash(git push *)",
       "Bash(git fetch *)",
-      "Bash(echo \"TSC $?\")"
+      "Bash(echo \"TSC $?\")",
+      "Bash(git -c user.name=PromoLift -c user.email=alaa.m@nchme.com commit --allow-empty -q -m 'ci: trigger Pages deploy \\(Pages source now set to GitHub Actions\\) *)"
     ]
   }
 }
