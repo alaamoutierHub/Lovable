@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Badge } from "../components/ui/primitives";
-import { Stat, Bar } from "../components/ui/viz";
+import { Stat, Bar, ColumnChart } from "../components/ui/viz";
 import { money, pct, ratio, healthTone, toneText } from "../lib/format";
 import { DEFAULT_SETTINGS, type Calc } from "../lib/calc";
 import { aggregateByMechanic, type MechanicStats } from "../lib/mechanic/aggregate";
@@ -79,6 +79,26 @@ export default function MechanicAnalysisPage() {
             hint="Portfolio re-derived"
           />
           <Stat label="Campaigns" value={summary.campaigns} hint={`${stats.length} mechanic(s)`} />
+        </div>
+      )}
+
+      {stats.length > 0 && (
+        <div className="mb-4 grid gap-4 lg:grid-cols-2">
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Net ROI by mechanic</h3>
+            <ColumnChart
+              height={180}
+              data={stats.map((s) => ({ label: s.mechanicName, value: cv(s.revenueRoi) ?? 0, display: ratio(cv(s.revenueRoi)), tone: s.revenueRoi.ok ? healthTone(s.revenueRoi.value, { good: 1, warn: 0 }) : "slate" }))}
+            />
+          </Card>
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Incremental revenue by mechanic</h3>
+            <ColumnChart
+              height={180}
+              tone="green"
+              data={stats.map((s) => ({ label: s.mechanicName, value: Math.max(0, cv(s.incrementalRevenue) ?? 0), display: money(cv(s.incrementalRevenue)) }))}
+            />
+          </Card>
         </div>
       )}
 
