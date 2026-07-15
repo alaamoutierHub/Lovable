@@ -37,6 +37,72 @@ function monthSpan(key: string, p: CalPlan): { offset: number; width: number } |
   };
 }
 
+// Continuous year-timeline (Gantt): every dated promo as a bar across a shared
+// month axis, so duration and overlaps are visible at a glance.
+function YearTimeline({ plans, conflictIds }: { plans: CalPlan[]; conflictIds: Set<string> }) {
+  const dated = useMemo(
+    () => plans
+      .filter((p) => p.startDate && p.endDate && (p.startDate as string) <= (p.endDate as string))
+      .sort((a, b) => (a.startDate as string).localeCompare(b.startDate as string)),
+    [plans],
+  );
+  if (dated.length === 0) return null;
+
+  const times = dated.flatMap((p) => [Date.parse(p.startDate as string), Date.parse(p.endDate as string)]);
+  const min = Math.min(...times);
+  const max = Math.max(...times);
+  const span = max - min || 1;
+  const pos = (t: number) => Math.max(0, Math.min(100, ((t - min) / span) * 100));
+
+  // month gridline ticks
+  const ticks: Array<{ t: number; label: string }> = [];
+  const cur = new Date(min);
+  cur.setDate(1);
+  let guard = 0;
+  while (cur.getTime() <= max && guard++ < 60) {
+    ticks.push({ t: cur.getTime(), label: `${MONTH_NAMES[cur.getMonth()]} '${String(cur.getFullYear()).slice(2)}` });
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  return (
+    <Card className="mb-4">
+      <div className="mb-2 text-xs font-semibold uppercase text-slate-400">Timeline</div>
+      <div className="max-h-[26rem] space-y-1 overflow-y-auto pr-1">
+        {/* month axis */}
+        <div className="flex items-end gap-2">
+          <span className="w-40 shrink-0" />
+          <div className="relative h-4 flex-1">
+            {ticks.map((tk, i) => (
+              <span key={i} className="absolute -translate-x-1/2 text-[10px] text-slate-400" style={{ left: `${pos(tk.t)}%` }}>{tk.label}</span>
+            ))}
+          </div>
+        </div>
+        {dated.map((p) => {
+          const conflicted = conflictIds.has(p.id);
+          const tone: Tone = conflicted ? "red" : STATUS_TONE[p.status] ?? "slate";
+          const l = pos(Date.parse(p.startDate as string));
+          const w = Math.max(1.5, pos(Date.parse(p.endDate as string)) - l);
+          return (
+            <div key={p.id} className="flex items-center gap-2">
+              <span className="w-40 shrink-0 truncate text-xs text-slate-600 dark:text-slate-300" title={p.label}>{p.label}</span>
+              <div className="relative h-4 flex-1 rounded bg-slate-50 dark:bg-slate-800/60">
+                {ticks.map((tk, i) => (
+                  <span key={i} className="absolute inset-y-0 w-px bg-slate-200 dark:bg-slate-700" style={{ left: `${pos(tk.t)}%` }} />
+                ))}
+                <div
+                  className={`absolute inset-y-0.5 rounded ${toneFill[tone]}`}
+                  style={{ left: `${l}%`, width: `${w}%` }}
+                  title={`${p.label}: ${p.startDate} → ${p.endDate}${conflicted ? " (overlap)" : ""}`}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 export default function PromotionCalendarPage() {
   const { activeOrgId } = useAuth();
   const query = useCalendarPlans(activeOrgId);
@@ -90,6 +156,8 @@ export default function PromotionCalendarPage() {
       {!query.isLoading && cal.months.length === 0 && (
         <Card><p className="text-sm text-slate-400">No dated promotions{statusFilter !== "all" ? " for this status" : ""}. Add start/end dates on plans in the Planner.</p></Card>
       )}
+
+      <YearTimeline plans={filtered} conflictIds={conflictIds} />
 
       {cal.months.length > 0 && (
         <Card className="mb-4">
