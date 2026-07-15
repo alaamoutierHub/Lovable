@@ -1,4 +1,4 @@
-// PromoLift — Promotion History (docs module J): filtering, duplicate detection,
+// Commerly — Promotion History (docs module J): filtering, duplicate detection,
 // and CSV export over saved plans. Pure + deterministic.
 
 export interface HistoryRow {

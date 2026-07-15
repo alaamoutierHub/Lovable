@@ -1,4 +1,4 @@
-// PromoLift — fetch saved plans for the History module (all joins).
+// Commerly — fetch saved plans for the History module (all joins).
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { HistoryRow } from "../history/history";

@@ -1,4 +1,4 @@
-# PromoLift — Formula Dictionary, Validation Findings & Data Quality Rules
+# Commerly — Formula Dictionary, Validation Findings & Data Quality Rules
 
 > Deliverable 4 (Formula Dictionary), part of Deliverable 6 (Data Quality Rules), plus the
 > **formula validation findings** requested in the brief ("validate all formulas… do not make

@@ -1,5 +1,5 @@
 -- =====================================================================
--- PromoLift — Platform (super) admin: cross-tenant READ access for the app owner.
+-- Commerly — Platform (super) admin: cross-tenant READ access for the app owner.
 -- A platform admin can view EVERY organization's data (support/monitoring), but
 -- writes/deletes stay role-gated (they hold no role in other orgs), so this is
 -- read-only cross-tenant access — see everything, never corrupt customer data.

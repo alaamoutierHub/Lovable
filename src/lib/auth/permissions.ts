@@ -1,4 +1,4 @@
-// PromoLift — RBAC model (mirrors docs/01 §4 and the RLS policies in
+// Commerly — RBAC model (mirrors docs/01 §4 and the RLS policies in
 // supabase/migrations/20260711120100_rls_policies.sql).
 // Client-side guards are convenience only; the database RLS is the authority.
 

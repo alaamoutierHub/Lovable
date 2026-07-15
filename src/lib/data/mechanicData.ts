@@ -1,4 +1,4 @@
-// PromoLift — fetch saved plans shaped for mechanic analysis.
+// Commerly — fetch saved plans shaped for mechanic analysis.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { MechanicPlanRow } from "../mechanic/aggregate";

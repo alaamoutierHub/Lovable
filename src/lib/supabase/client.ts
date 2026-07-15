@@ -1,4 +1,4 @@
-// PromoLift — Supabase browser client.
+// Commerly — Supabase browser client.
 // Uses the anon/publishable key (RLS-gated). NEVER import service-role or provider
 // API keys here.
 import { createClient } from "@supabase/supabase-js";

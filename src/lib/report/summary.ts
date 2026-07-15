@@ -1,4 +1,4 @@
-// PromoLift — Management Summary (docs module K). Pure composition over already-
+// Commerly — Management Summary (docs module K). Pure composition over already-
 // computed analytics (portfolio roll-up, channel ranking, recommendations, optimizer
 // shifts). Produces executive-ready sections + email-ready text. No calculations here
 // beyond simple aggregation of pre-computed values.
@@ -96,7 +96,7 @@ export function buildManagementSummary(input: SummaryInput): ManagementSummary {
 export function summaryToEmailText(s: ManagementSummary): string {
   const section = (title: string, items: string[]) => `${title}\n${items.map((i) => `  - ${i}`).join("\n")}`;
   return [
-    "PROMOLIFT — MANAGEMENT SUMMARY",
+    "COMMERLY — MANAGEMENT SUMMARY",
     "",
     s.headline,
     "",

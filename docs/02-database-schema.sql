@@ -1,5 +1,5 @@
 -- =====================================================================
--- PromoLift — Database Schema (Deliverable 2)  |  Supabase / PostgreSQL
+-- Commerly — Database Schema (Deliverable 2)  |  Supabase / PostgreSQL
 -- ---------------------------------------------------------------------
 -- Conventions:
 --   * Every business table has organization_id + RLS.

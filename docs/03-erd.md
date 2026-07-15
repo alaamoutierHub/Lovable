@@ -1,4 +1,4 @@
-# PromoLift — Entity Relationship Map (Deliverable 3)
+# Commerly — Entity Relationship Map (Deliverable 3)
 
 ```mermaid
 erDiagram

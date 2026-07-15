@@ -1,5 +1,5 @@
 -- =====================================================================
--- PromoLift — QA seed data (runs via `supabase db reset`, bypasses RLS).
+-- Commerly — QA seed data (runs via `supabase db reset`, bypasses RLS).
 -- A demo org + master data + sample promotion plans covering the edge
 -- cases in docs/01 §7 (testing plan). Deterministic fixed UUIDs.
 -- NOTE: memberships require a real auth user; add yourself after signup:

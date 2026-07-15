@@ -33,7 +33,7 @@ export default function AppShell() {
       <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4">
           <div className="flex items-center gap-2">
-            <div className="text-lg font-bold text-slate-900 dark:text-slate-50">PromoLift</div>
+            <div className="text-lg font-bold text-slate-900 dark:text-slate-50">Commerly</div>
             {isPlatformAdmin && (
               <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">Admin</span>
             )}

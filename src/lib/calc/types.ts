@@ -1,4 +1,4 @@
-// PromoLift deterministic calculation engine — shared types.
+// Commerly deterministic calculation engine — shared types.
 // Runs identically on client (preview) and server (source of truth).
 // No randomness, no Date.now, no floating-point order sensitivity in aggregates.
 

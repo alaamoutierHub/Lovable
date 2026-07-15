@@ -1,13 +1,13 @@
-// PromoLift — Email Notification Edge Function (Supabase / Deno) via Resend.
+// Commerly — Email Notification Edge Function (Supabase / Deno) via Resend.
 // Sends transactional email (report delivery, approval notifications). The API key
 // stays server-side. Callers must be authenticated (Supabase verifies the JWT).
 //
 // Secret (set as an Edge Function secret, NOT in the frontend):
 //   RESEND_API_KEY   (required)
-//   RESEND_FROM      (optional, default "PromoLift <onboarding@resend.dev>")
+//   RESEND_FROM      (optional, default "Commerly <onboarding@resend.dev>")
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "PromoLift <onboarding@resend.dev>";
+const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Commerly <onboarding@resend.dev>";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",

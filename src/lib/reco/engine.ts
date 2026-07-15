@@ -1,4 +1,4 @@
-// PromoLift — Recommendation Engine (docs/05).
+// Commerly — Recommendation Engine (docs/05).
 // Transparent, deterministic, auditable. Runs AFTER the calc engine on already-
 // computed metrics. Normalizes within a cohort, applies weights, then guardrails
 // that only ever DOWNGRADE a band (never upgrade — a tested monotonicity property).

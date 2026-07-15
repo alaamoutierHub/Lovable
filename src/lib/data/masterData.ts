@@ -1,4 +1,4 @@
-// PromoLift — master-data access layer (TanStack Query + Supabase).
+// Commerly — master-data access layer (TanStack Query + Supabase).
 // Generic CRUD over the master tables. Soft-delete via deleted_at.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";

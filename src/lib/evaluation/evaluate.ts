@@ -1,4 +1,4 @@
-// PromoLift — Post-Promotion Evaluation (docs module C).
+// Commerly — Post-Promotion Evaluation (docs module C).
 // Reuses the deterministic calc engine on ACTUAL figures, compares to plan,
 // and classifies the outcome. Guardrails suppress "scale" under supply constraints.
 

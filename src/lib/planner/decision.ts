@@ -1,4 +1,4 @@
-// PromoLift — planner-level recommended decision (docs module B).
+// Commerly — planner-level recommended decision (docs module B).
 // Deterministic. Distinct from the full recommendation engine (Stage 11): this is a
 // fast plan-time gate on economics + data quality, not a normalized portfolio score.
 

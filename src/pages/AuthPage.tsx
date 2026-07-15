@@ -63,7 +63,7 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 dark:bg-slate-950">
       <Card className="w-full max-w-sm">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50">PromoLift</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50">Commerly</h1>
         <p className="mb-4 text-sm text-slate-500">
           {mode === "signin" ? "Sign in" : mode === "signup" ? "Create your account" : "Reset password"}
         </p>

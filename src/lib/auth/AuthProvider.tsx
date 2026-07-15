@@ -1,4 +1,4 @@
-// PromoLift — auth + active-organization context.
+// Commerly — auth + active-organization context.
 // Boots with or without Supabase configured (preview-safe).
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", userId)
       .is("deleted_at", null);
     if (error) {
-      console.error("[PromoLift] failed to load memberships", error.message);
+      console.error("[Commerly] failed to load memberships", error.message);
       return;
     }
     const rows: Membership[] = (data ?? []).map((r: any) => ({

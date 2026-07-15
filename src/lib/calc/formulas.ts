@@ -1,4 +1,4 @@
-// PromoLift — Formula Dictionary F1–F19 (docs/04-formulas-and-data-quality.md).
+// Commerly — Formula Dictionary F1–F19 (docs/04-formulas-and-data-quality.md).
 // Every function is pure and deterministic. Division by zero/null => NOT_CALCULABLE,
 // never 0, Infinity, or NaN.
 

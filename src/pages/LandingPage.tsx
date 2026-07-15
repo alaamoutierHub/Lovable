@@ -47,7 +47,7 @@ const PRICING = [
 ];
 
 const FAQ = [
-  { q: "Do I need margin, COGS or P&L data?", a: "No. PromoLift is built entirely around revenue growth, incremental sales, uplift and investment efficiency. You never import margin or profit data." },
+  { q: "Do I need margin, COGS or P&L data?", a: "No. Commerly is built entirely around revenue growth, incremental sales, uplift and investment efficiency. You never import margin or profit data." },
   { q: "Which channels does it support?", a: "Amazon, Noon, Talabat Mart, Careem Quik, Carrefour, Mumzworld, Instashop, Kibsons and more — and you can add any custom channel your team sells on." },
   { q: "How are recommendations calculated?", a: "Every metric uses a fixed, documented formula. A transparent scoring engine normalizes them, applies guardrails, and shows the drivers and confidence behind each recommendation. AI only writes the narrative — it never computes the numbers." },
   { q: "Is my data isolated from other companies?", a: "Yes. Every organization is isolated by row-level security, verified with live cross-tenant tests. Roles control who can view, edit, approve and export." },
@@ -71,13 +71,13 @@ export default function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-2.5 font-extrabold tracking-tight text-slate-900">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-teal-600 to-teal-500 text-sm text-white">P</span>
-            PromoLift
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-teal-600 to-teal-500 text-sm text-white">C</span>
+            Commerly
           </div>
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-500 md:flex">
             <a href="#features" className="hover:text-slate-900">Platform</a>
             <a href="#process" className="hover:text-slate-900">How it works</a>
-            <a href="#why" className="hover:text-slate-900">Why PromoLift</a>
+            <a href="#why" className="hover:text-slate-900">Why Commerly</a>
             <a href="#pricing" className="hover:text-slate-900">Pricing</a>
           </nav>
           <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function LandingPage() {
               Put your next promo <span style={{ color: GOLD }}>dirham</span> where the growth actually is.
             </h1>
             <p className="mt-6 max-w-md text-lg text-slate-600">
-              PromoLift ranks every channel, SKU, campaign and mechanic by the revenue growth it really drives —
+              Commerly ranks every channel, SKU, campaign and mechanic by the revenue growth it really drives —
               then tells you where to invest next. No COGS, margin or P&amp;L data required.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -207,7 +207,7 @@ export default function LandingPage() {
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700">Why commercial teams choose it</span>
             <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Built for the way promotions actually get decided</h2>
-            <p className="mt-4 text-slate-600">Spreadsheets can't tell you what was incremental, what to trust, or where the next budget should go. PromoLift can — transparently.</p>
+            <p className="mt-4 text-slate-600">Spreadsheets can't tell you what was incremental, what to trust, or where the next budget should go. Commerly can — transparently.</p>
             <div className="mt-7 flex flex-col gap-5">
               {[["No margin or P&L data needed", "Works entirely on revenue growth, incremental sales, uplift and investment efficiency — nothing sensitive to import."], ["Deterministic & auditable", "Every metric uses a fixed formula with full provenance and confidence. You can always see how a number was produced."], ["Secure & multi-tenant by design", "Row-level security isolates every organization. Roles control who can view, edit, approve and export."]].map(([t, d]) => (
                 <div key={t} className="flex gap-4">
@@ -293,7 +293,7 @@ export default function LandingPage() {
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-slate-500">
           <div className="flex items-center gap-2 font-extrabold text-slate-800">
-            <span className="grid h-6 w-6 place-items-center rounded bg-gradient-to-br from-teal-600 to-teal-500 text-xs text-white">P</span>PromoLift
+            <span className="grid h-6 w-6 place-items-center rounded bg-gradient-to-br from-teal-600 to-teal-500 text-xs text-white">C</span>Commerly
           </div>
           <p>Multi-Channel Growth &amp; Investment Planner</p>
           <div className="flex gap-6">

@@ -1,6 +1,6 @@
-# PromoLift — Design Deliverables (Stage 0)
+# Commerly — Design Deliverables (Stage 0)
 
-Foundational design artifacts for **PromoLift — Multi-Channel Growth & Investment Planner**, produced
+Foundational design artifacts for **Commerly — Multi-Channel Growth & Investment Planner**, produced
 before implementation per the build brief (§21–§22). No COGS / margin / P&L — the platform is about
 revenue growth, incremental sales, investment efficiency, forecast accuracy, and budget allocation.
 

@@ -1,4 +1,4 @@
-// PromoLift — Promotion Calendar (docs module I).
+// Commerly — Promotion Calendar (docs module I).
 // Buckets plans into the months they span, detects overlapping promotions on the
 // same SKU+channel (conflicts), and sums spend by month. Pure string-based date
 // handling (ISO YYYY-MM-DD sorts lexically) — deterministic, no Date dependency.

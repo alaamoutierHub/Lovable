@@ -1,4 +1,4 @@
-// PromoLift — thin, dependency-free analytics wrapper (PostHog-compatible).
+// Commerly — thin, dependency-free analytics wrapper (PostHog-compatible).
 // No-ops safely when unconfigured. Configured from env (VITE_POSTHOG_KEY/HOST) or
 // at runtime via the Integrations settings. Sends events to PostHog's capture
 // endpoint; the project API key is client-safe (capture only).
@@ -12,7 +12,7 @@ let config: AnalyticsConfig | null = null;
 
 function anonId(): string {
   try {
-    const k = "promolift_anon_id";
+    const k = "commerly_anon_id";
     let id = localStorage.getItem(k);
     if (!id) {
       id = (crypto as Crypto).randomUUID();
@@ -44,7 +44,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
         api_key: config.projectApiKey,
         event,
         distinct_id: anonId(),
-        properties: { ...properties, $lib: "promolift" },
+        properties: { ...properties, $lib: "commerly" },
       }),
     }).catch(() => {});
     return true;

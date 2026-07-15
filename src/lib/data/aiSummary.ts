@@ -1,4 +1,4 @@
-// PromoLift — client hook for the AI summary Edge Function.
+// Commerly — client hook for the AI summary Edge Function.
 // Sends already-computed data; the function calls Anthropic server-side and returns
 // a strict-schema narrative. No API keys touch the browser.
 import { useMutation } from "@tanstack/react-query";

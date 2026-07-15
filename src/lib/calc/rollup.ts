@@ -1,4 +1,4 @@
-// PromoLift — portfolio roll-ups. Finding V9: NEVER average per-campaign ratios.
+// Commerly — portfolio roll-ups. Finding V9: NEVER average per-campaign ratios.
 // Recompute every ratio from summed numerators / summed denominators.
 
 import { Calc, OrgSettings, DEFAULT_SETTINGS, ok, nc } from "./types";

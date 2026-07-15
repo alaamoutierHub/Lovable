@@ -1,4 +1,4 @@
-// PromoLift — Scenario Comparison (docs module D).
+// Commerly — Scenario Comparison (docs module D).
 // Computes each what-if scenario with the deterministic engine, assigns a risk
 // level, and recommends one. Recommendation never picks negative incremental.
 

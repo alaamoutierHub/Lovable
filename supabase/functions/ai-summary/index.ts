@@ -1,4 +1,4 @@
-// PromoLift — AI Summary Edge Function (Supabase / Deno).
+// Commerly — AI Summary Edge Function (Supabase / Deno).
 // Server-side proxy to Anthropic. Receives ALREADY-COMPUTED metrics + recommendations
 // and returns a strict-JSON-schema narrative. The API key never leaves the server, and
 // the model is instructed never to compute or invent numbers — only to explain them.
@@ -41,7 +41,7 @@ const OUTPUT_SCHEMA = {
 };
 
 const SYSTEM =
-  "You are a commercial analytics assistant for PromoLift, a promotional-investment decision-support " +
+  "You are a commercial analytics assistant for Commerly, a promotional-investment decision-support " +
   "platform. You receive ALREADY-COMPUTED metrics, recommendations and budget shifts as JSON. " +
   "You MUST NOT compute, estimate, or invent any numbers — only explain, summarize, prioritize and " +
   "narrate what is given. Every statement must be grounded in the provided data. Never present " +

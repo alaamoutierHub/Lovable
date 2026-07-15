@@ -1,4 +1,4 @@
-// PromoLift — post-promotion actuals persistence.
+// Commerly — post-promotion actuals persistence.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { EvaluationResult } from "../evaluation/evaluate";

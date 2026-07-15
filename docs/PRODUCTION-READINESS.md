@@ -1,4 +1,4 @@
-# PromoLift — Production Readiness (Stage 20)
+# Commerly — Production Readiness (Stage 20)
 
 Final QA snapshot. Reflects the build on branch `main` after Stages 0–17 + 19–20
 (Stage 18 Billing intentionally deferred).
@@ -56,7 +56,7 @@ missing-data) are seeded in `supabase/seed.sql`.
 - [ ] Turn on Supabase Auth **leaked-password protection**; keep **email confirmation on**.
 - [ ] Set a **Content-Security-Policy** at the hosting layer (Lovable/CDN).
 - [ ] Configure a real email `from` domain in Resend (`RESEND_FROM`).
-- [ ] Remove/rotate the QA test user (`promolift.qa.2026@gmail.com`) and demo data.
+- [ ] Remove/rotate the QA test user (`commerly.qa.2026@gmail.com`) and demo data.
 
 **Recommended soon after:**
 - [ ] Stage 18 billing (Stripe) if monetizing.

@@ -1,4 +1,4 @@
-// PromoLift — bulk import specs + row validation for master data.
+// Commerly — bulk import specs + row validation for master data.
 // Maps CSV columns to entity fields, validates each row, detects in-file
 // duplicates and rows that collide with existing keys, and separates
 // accepted rows from rejected rows (with reasons) for re-export.

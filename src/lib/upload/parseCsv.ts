@@ -1,4 +1,4 @@
-// PromoLift — dependency-free CSV parser. Handles quoted fields, escaped quotes
+// Commerly — dependency-free CSV parser. Handles quoted fields, escaped quotes
 // (""), embedded commas/newlines, and CRLF. Returns headers + string rows.
 
 export interface ParsedCsv {

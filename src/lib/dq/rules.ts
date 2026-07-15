@@ -1,4 +1,4 @@
-// PromoLift — Data Quality engine (docs/04 §4). Deterministic rule catalogue.
+// Commerly — Data Quality engine (docs/04 §4). Deterministic rule catalogue.
 // Computes the subset of Q01–Q25 derivable from promotion-plan inputs + metrics.
 // Blocking errors prevent submit/approve; warnings lower the DQ score & confidence.
 

@@ -1,4 +1,4 @@
-// PromoLift — connector registry (docs §10). Adding an integration is data, not
+// Commerly — connector registry (docs §10). Adding an integration is data, not
 // core-logic changes: register it here, and the Settings page renders it with
 // status, connect/disconnect, and audit. Secrets are NEVER stored here — server
 // secrets live in Supabase Edge Function secrets; only public client config

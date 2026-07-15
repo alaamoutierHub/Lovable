@@ -1,4 +1,4 @@
-# PromoLift — Recommendation Engine Logic (Deliverable 5)
+# Commerly — Recommendation Engine Logic (Deliverable 5)
 
 > Transparent, configurable, auditable. Runs **after** deterministic calculations. AI never scores —
 > it only explains a score that this engine produced. Every recommendation persists its inputs,

@@ -1,4 +1,4 @@
-// PromoLift — Promotion Mechanic Analysis (docs module G).
+// Commerly — Promotion Mechanic Analysis (docs module G).
 // Groups saved plans by mechanic and re-derives ratios from summed numerators /
 // denominators (finding V9), plus ASP dilution, cost-per-incremental-unit, and the
 // best-performing channel for each mechanic. Reuses the tested rollup() engine.

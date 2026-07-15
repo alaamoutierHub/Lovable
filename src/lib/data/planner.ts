@@ -1,4 +1,4 @@
-// PromoLift — promotion-plan persistence (TanStack Query + Supabase).
+// Commerly — promotion-plan persistence (TanStack Query + Supabase).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { PromoMetrics } from "../calc/plan";

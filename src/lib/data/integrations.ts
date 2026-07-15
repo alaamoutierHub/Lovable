@@ -1,4 +1,4 @@
-// PromoLift — integrations connection state (RLS: admin-only writes).
+// Commerly — integrations connection state (RLS: admin-only writes).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 

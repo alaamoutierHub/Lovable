@@ -1,5 +1,5 @@
 -- =====================================================================
--- PromoLift — Row Level Security (Stage 2)
+-- Commerly — Row Level Security (Stage 2)
 -- Every business table (has organization_id) gets tenant isolation.
 -- Sensitive tables get role-restricted writes on top.
 -- =====================================================================

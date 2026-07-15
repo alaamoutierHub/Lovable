@@ -1,4 +1,4 @@
-// PromoLift — top-level error boundary (Sentry-ready). Reports to Sentry's store
+// Commerly — top-level error boundary (Sentry-ready). Reports to Sentry's store
 // endpoint when VITE_SENTRY_DSN is set; otherwise logs to console. Keeps the app
 // from white-screening on a render error.
 import { Component, type ErrorInfo, type ReactNode } from "react";
@@ -6,7 +6,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 function reportToSentry(error: Error, info: ErrorInfo) {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
   // eslint-disable-next-line no-console
-  console.error("[PromoLift] Uncaught error:", error, info.componentStack);
+  console.error("[Commerly] Uncaught error:", error, info.componentStack);
   if (!dsn) return;
   try {
     // Minimal DSN parse: https://<key>@<host>/<projectId>

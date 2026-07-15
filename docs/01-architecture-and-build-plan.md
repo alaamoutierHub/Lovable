@@ -1,4 +1,4 @@
-# PromoLift — Product Architecture & Build Plan
+# Commerly — Product Architecture & Build Plan
 
 Covers initial deliverables **1 (architecture), 7 (page map), 8 (user flows), 9 (role/permission
 matrix), 10 (integration architecture), 11 (MVP vs later split), 12 (testing plan), 13 (risk register),

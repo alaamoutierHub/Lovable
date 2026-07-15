@@ -1,4 +1,4 @@
-// PromoLift — SKU-Channel Matrix (docs module F).
+// Commerly — SKU-Channel Matrix (docs module F).
 // Aggregates saved plans into (SKU × Channel) cells, re-deriving ratios via the
 // tested rollup() engine, and assigns a recommendation band with conditional
 // formatting. Small-sample cells are capped at "Test & Learn" (guardrail G1).

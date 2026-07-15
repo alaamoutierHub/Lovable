@@ -1,4 +1,4 @@
-// PromoLift — plan-level calculation bundle. Given raw promotion inputs, produce
+// Commerly — plan-level calculation bundle. Given raw promotion inputs, produce
 // the full derived metric set used by the Planner and Evaluation modules.
 
 import {

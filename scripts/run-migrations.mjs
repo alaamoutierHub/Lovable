@@ -1,4 +1,4 @@
-// PromoLift — one-off migration runner.
+// Commerly — one-off migration runner.
 // Usage:
 //   node scripts/run-migrations.mjs            # runs the two migrations
 //   node scripts/run-migrations.mjs --seed     # also runs supabase/seed.sql

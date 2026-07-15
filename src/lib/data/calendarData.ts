@@ -1,4 +1,4 @@
-// PromoLift — fetch saved plans shaped for the promotion calendar.
+// Commerly — fetch saved plans shaped for the promotion calendar.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { CalPlan } from "../calendar/calendar";

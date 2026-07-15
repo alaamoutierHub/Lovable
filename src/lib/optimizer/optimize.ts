@@ -1,4 +1,4 @@
-// PromoLift — Budget Allocation Optimizer (docs module H, §6).
+// Commerly — Budget Allocation Optimizer (docs module H, §6).
 // Transparent greedy heuristic: allocate budget in increments to the candidate
 // with the highest CURRENT marginal expected-incremental-per-AED, where marginal
 // return decays past a saturation point (diminishing returns). Confidence damps

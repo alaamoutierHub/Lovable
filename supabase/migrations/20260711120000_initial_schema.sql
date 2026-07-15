@@ -1,5 +1,5 @@
 -- =====================================================================
--- PromoLift — Initial schema (Stage 2)
+-- Commerly — Initial schema (Stage 2)
 -- Runnable on Supabase/Postgres. RLS is applied in the next migration.
 -- Mirrors docs/02-database-schema.sql.
 -- =====================================================================

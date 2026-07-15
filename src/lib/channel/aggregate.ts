@@ -1,4 +1,4 @@
-// PromoLift — Channel Comparison aggregation (docs module E).
+// Commerly — Channel Comparison aggregation (docs module E).
 // Groups saved plans by channel and re-derives portfolio ratios from summed
 // numerators/denominators (finding V9) by reusing the tested rollup() engine.
 

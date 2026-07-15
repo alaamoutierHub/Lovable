@@ -1,4 +1,4 @@
-# PromoLift — Security Review (Stage 19)
+# Commerly — Security Review (Stage 19)
 
 Live-verified against the connected Supabase project on 2026-07-13. Commands and
 results are reproducible; see "How to re-run" below.

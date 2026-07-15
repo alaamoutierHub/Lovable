@@ -1,4 +1,4 @@
-// PromoLift — fetch saved plans shaped for channel aggregation.
+// Commerly — fetch saved plans shaped for channel aggregation.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { PlanRow } from "../channel/aggregate";

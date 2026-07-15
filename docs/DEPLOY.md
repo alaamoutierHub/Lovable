@@ -1,7 +1,7 @@
-# Deploying PromoLift (shareable link with working signup)
+# Deploying Commerly (shareable link with working signup)
 
 > ⚠️ The `*.lovable.app` URL from a Lovable *project* is Lovable's own generated app,
-> **not** this repo. To share the real PromoLift app, deploy **this repo** with the
+> **not** this repo. To share the real Commerly app, deploy **this repo** with the
 > Supabase env vars. Two options below — Vercel/Netlify is fastest and most reliable.
 
 ## What the deployed build needs

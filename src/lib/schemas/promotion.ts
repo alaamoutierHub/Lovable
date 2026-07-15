@@ -1,4 +1,4 @@
-// PromoLift — Zod validation schemas for promotion inputs.
+// Commerly — Zod validation schemas for promotion inputs.
 // Shared by the Planner form (client) and the Edge Function that persists + recomputes (server).
 import { z } from "zod";
 

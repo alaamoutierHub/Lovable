@@ -1,4 +1,4 @@
-// PromoLift — fetch saved plans shaped for the SKU-Channel matrix.
+// Commerly — fetch saved plans shaped for the SKU-Channel matrix.
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase/client";
 import type { MatrixPlanRow } from "../matrix/matrix";
