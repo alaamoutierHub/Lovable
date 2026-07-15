@@ -15,7 +15,8 @@
       "Bash(git push *)",
       "Bash(git fetch *)",
       "Bash(echo \"TSC $?\")",
-      "Bash(git -c user.name=Commerly -c user.email=alaa.m@nchme.com commit --allow-empty -q -m 'ci: trigger Pages deploy \\(Pages source now set to GitHub Actions\\) *)"
+      "Bash(git -c user.name=Commerly -c user.email=alaa.m@nchme.com commit --allow-empty -q -m 'ci: trigger Pages deploy \\(Pages source now set to GitHub Actions\\) *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const d={...p.dependencies,...p.devDependencies}; console.log\\('testing-library/react:', d['@testing-library/react']||'NO'\\); console.log\\('jsdom:', d['jsdom']||'NO'\\); console.log\\('happy-dom:', d['happy-dom']||'NO'\\);\")"
     ]
   }
 }
