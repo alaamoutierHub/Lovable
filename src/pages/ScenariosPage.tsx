@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { Button, Card, Field, Input, Badge } from "../components/ui/primitives";
+import { RankBars } from "../components/ui/viz";
+import { healthTone, toneText, type Tone } from "../lib/format";
 import { compareScenarios, type ScenarioInput, type Risk } from "../lib/scenario/compare";
 import { DEFAULT_SETTINGS, type Calc } from "../lib/calc";
+
+// Net ROI health bands: ≥1 strong (green), ≥0 positive (amber), <0 losing (red).
+const roiTone = (c: Calc): Tone => (c.ok ? healthTone(c.value, { good: 1, warn: 0 }) : "slate");
 
 const money = (c: Calc, cur = "AED") =>
   c.ok ? `${cur} ${c.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—";
@@ -75,6 +80,23 @@ export default function ScenariosPage() {
         </Card>
       )}
 
+      {comparison.results.length > 0 && (
+        <Card className="mb-4">
+          <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Net ROI by scenario</h2>
+          <RankBars
+            data={comparison.results.map((res) => {
+              const roi = res.metrics.revenueRoi;
+              return {
+                label: rows.find((x) => x.id === res.input.id)?.name || res.input.name,
+                value: roi.ok ? roi.value : 0,
+                display: ratio(roi),
+                tone: roiTone(roi),
+              };
+            })}
+          />
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {comparison.results.map((res) => {
           const r = rows.find((x) => x.id === res.input.id)!;
@@ -104,7 +126,7 @@ export default function ScenariosPage() {
               <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
                 <M label="Incr. rev" v={money(m.incrementalRevenue)} />
                 <M label="Uplift %" v={pct(m.revenueUpliftPct)} />
-                <M label="Net ROI" v={ratio(m.revenueRoi)} />
+                <M label="Net ROI" v={ratio(m.revenueRoi)} tone={roiTone(m.revenueRoi)} />
                 <M label="Investment" v={money(m.totalInvestment)} />
                 <M label="Intensity" v={pct(m.investmentIntensity)} />
                 <M label="ASP dilution" v={pct(m.aspDilutionPct)} />
@@ -129,11 +151,11 @@ function MiniInput({ label, v, on }: { label: string; v: string; on: (e: React.C
     </label>
   );
 }
-function M({ label, v }: { label: string; v: string }) {
+function M({ label, v, tone }: { label: string; v: string; tone?: Tone }) {
   return (
     <>
       <dt className="text-slate-500">{label}</dt>
-      <dd className="text-right font-medium text-slate-800 dark:text-slate-100">{v}</dd>
+      <dd className={`text-right font-medium ${tone ? toneText[tone] : "text-slate-800 dark:text-slate-100"}`}>{v}</dd>
     </>
   );
 }

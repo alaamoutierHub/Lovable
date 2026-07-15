@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
-import { Card, Field, Input, Badge, Button } from "../components/ui/primitives";
+import { Card, Field, Input, Badge, Button, Select } from "../components/ui/primitives";
+import { Stat, Donut, Bar } from "../components/ui/viz";
+import { money, compact, healthTone } from "../lib/format";
 import { DEFAULT_SETTINGS } from "../lib/calc";
 import { buildMatrix } from "../lib/matrix/matrix";
 import { useMatrixPlanRows } from "../lib/data/matrixData";
 import { scoreCohort, type RecoUnit } from "../lib/reco/engine";
 import { optimizeBudget, type Candidate, type RiskTolerance } from "../lib/optimizer/optimize";
 
-const money = (v: number, cur = "AED") => `${cur} ${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 const CONF_TONE = { high: "green", medium: "amber", low: "red", insufficient: "slate" } as const;
 const n = (s: string): number => (s.trim() === "" ? 0 : Number(s));
 
@@ -84,16 +85,15 @@ export default function BudgetOptimizerPage() {
         <Card>
           <h3 className="mb-3 font-semibold">Constraints</h3>
           <div className="space-y-3">
-            <Field label="Total budget (AED)"><Input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} /></Field>
-            <Field label="Max concentration per combo (%)"><Input type="number" value={concentration} onChange={(e) => setConcentration(e.target.value)} /></Field>
-            <Field label="Test & learn carve-out (%)"><Input type="number" value={testPct} onChange={(e) => setTestPct(e.target.value)} /></Field>
+            <Field label="Total budget"><Input type="number" prefix="AED" value={budget} onChange={(e) => setBudget(e.target.value)} /></Field>
+            <Field label="Max concentration per combo" hint="Cap on how much of the budget any single combo can take."><Input type="number" suffix="%" value={concentration} onChange={(e) => setConcentration(e.target.value)} /></Field>
+            <Field label="Test & learn carve-out" hint="Reserved for lower-confidence bets."><Input type="number" suffix="%" value={testPct} onChange={(e) => setTestPct(e.target.value)} /></Field>
             <Field label="Risk tolerance">
-              <select value={risk} onChange={(e) => setRisk(e.target.value as RiskTolerance)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800">
+              <Select value={risk} onChange={(e) => setRisk(e.target.value as RiskTolerance)}>
                 <option value="low">Low — high/medium confidence only</option>
                 <option value="medium">Medium — excludes insufficient</option>
                 <option value="high">High — all candidates</option>
-              </select>
+              </Select>
             </Field>
             <Button onClick={() => setRun((v) => v + 1)} className="w-full">Optimize</Button>
             <p className="text-xs text-slate-400">{candidates.length} fundable SKU×channel combo(s) from saved plans.</p>
@@ -102,10 +102,14 @@ export default function BudgetOptimizerPage() {
 
         <div className="space-y-4 lg:col-span-2">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Kpi label="Allocated" value={money(result.totalAllocated)} />
-            <Kpi label="Exp. incremental" value={money(result.expectedIncremental)} />
-            <Kpi label="Exp. ROI (net)" value={result.expectedRoiNet != null ? result.expectedRoiNet.toFixed(2) : "—"} />
-            <Kpi label="Unallocated" value={money(result.unallocated)} />
+            <Stat label="Allocated" value={money(result.totalAllocated)} />
+            <Stat label="Exp. incremental" value={money(result.expectedIncremental)} tone={result.expectedIncremental > 0 ? "green" : "slate"} />
+            <Stat
+              label="Exp. ROI (net)"
+              value={result.expectedRoiNet != null ? result.expectedRoiNet.toFixed(2) : "—"}
+              tone={result.expectedRoiNet != null ? healthTone(result.expectedRoiNet, { good: 1, warn: 0 }) : "slate"}
+            />
+            <Stat label="Unallocated" value={money(result.unallocated)} tone={result.unallocated > 0 ? "amber" : "slate"} />
           </div>
 
           <Card>
@@ -114,28 +118,40 @@ export default function BudgetOptimizerPage() {
               <p className="text-sm text-slate-400">No fundable combos yet — save plans with a SKU + channel and positive incremental first.</p>
             )}
             {result.allocations.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400 dark:border-slate-700">
-                      <th className="py-2 pr-4">Combo</th><th className="py-2 pr-4">Allocation</th>
-                      <th className="py-2 pr-4">Share</th><th className="py-2 pr-4">Exp. incremental</th>
-                      <th className="py-2 pr-4">Confidence</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.allocations.map((a) => (
-                      <tr key={a.id} className="border-b border-slate-100 dark:border-slate-800">
-                        <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-100">{a.label}</td>
-                        <td className="py-2 pr-4">{money(a.amount)}</td>
-                        <td className="py-2 pr-4">{(a.share * 100).toFixed(0)}%</td>
-                        <td className="py-2 pr-4">{money(a.expectedIncremental)}</td>
-                        <td className="py-2 pr-4"><Badge tone={CONF_TONE[a.confidence]}>{a.confidence}</Badge></td>
+              <>
+                <div className="mb-4">
+                  <Donut
+                    data={result.allocations.map((a) => ({ label: a.label, value: a.amount }))}
+                    centerLabel="allocated"
+                    centerValue={`AED ${compact(result.totalAllocated)}`}
+                  />
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400 dark:border-slate-700">
+                        <th className="py-2 pr-4">Combo</th><th className="py-2 pr-4">Allocation</th>
+                        <th className="min-w-[8rem] py-2 pr-4">Share</th><th className="py-2 pr-4">Exp. incremental</th>
+                        <th className="py-2 pr-4">Confidence</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const maxShare = Math.max(...result.allocations.map((a) => a.share));
+                        return result.allocations.map((a) => (
+                          <tr key={a.id} className="border-b border-slate-100 dark:border-slate-800">
+                            <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-100">{a.label}</td>
+                            <td className="py-2 pr-4 tabular-nums">{money(a.amount)}</td>
+                            <td className="py-2 pr-4"><Bar value={a.share} max={maxShare} tone="green" label={`${(a.share * 100).toFixed(0)}%`} /></td>
+                            <td className="py-2 pr-4 tabular-nums">{money(a.expectedIncremental)}</td>
+                            <td className="py-2 pr-4"><Badge tone={CONF_TONE[a.confidence]}>{a.confidence}</Badge></td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </Card>
 
@@ -164,14 +180,5 @@ export default function BudgetOptimizerPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{value}</div>
-    </Card>
   );
 }
