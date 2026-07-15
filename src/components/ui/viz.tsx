@@ -233,6 +233,44 @@ export function Sparkline({
 }
 
 // ---------------------------------------------------------------------------
+// ColumnChart — vertical bars for time-series / comparisons. Div-based, so it
+// stays crisp and responsive with value labels on top and category labels below.
+// Positive-scaled (negatives clamp to a stub); tone per column or a global tone.
+// ---------------------------------------------------------------------------
+export function ColumnChart({
+  data,
+  height = 160,
+  tone,
+}: {
+  data: Array<{ label: string; value: number; display?: string; tone?: Tone }>;
+  height?: number;
+  tone?: Tone;
+}) {
+  if (data.length === 0) return <div className="text-sm text-slate-400">No data</div>;
+  const max = Math.max(0, ...data.map((d) => (Number.isFinite(d.value) ? d.value : 0)));
+  return (
+    <div className="w-full overflow-x-auto">
+      <div className="flex items-end gap-2" style={{ height }}>
+        {data.map((d, i) => {
+          const h = max > 0 ? Math.max(2, (Math.max(0, d.value) / max) * 100) : 0;
+          return (
+            <div key={i} className="flex min-w-[2rem] flex-1 flex-col items-center justify-end">
+              {d.display != null && <span className="mb-1 text-[10px] tabular-nums text-slate-500 dark:text-slate-400">{d.display}</span>}
+              <div
+                className={cx("w-full max-w-[3.5rem] rounded-t transition-all", toneFill[d.tone ?? tone ?? "slate"])}
+                style={{ height: `${h}%` }}
+                title={`${d.label}: ${d.display ?? d.value}`}
+              />
+              <span className="mt-1 w-full truncate text-center text-[10px] text-slate-500 dark:text-slate-400" title={d.label}>{d.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // HeatCell — a color-intensity cell for heatmaps/matrices. `intensity` 0–1
 // scales opacity of the tone; used to encode continuous magnitude on a grid.
 // ---------------------------------------------------------------------------

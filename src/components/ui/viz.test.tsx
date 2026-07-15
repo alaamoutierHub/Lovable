@@ -3,7 +3,7 @@
 // sensible markup — the closest we can get to "it renders" without a DOM.
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Stat, Bar, RankBars, Gauge, Donut, Sparkline, HeatCell } from "./viz";
+import { Stat, Bar, RankBars, Gauge, Donut, Sparkline, HeatCell, ColumnChart } from "./viz";
 
 const html = (el: React.ReactElement) => renderToStaticMarkup(el);
 
@@ -64,6 +64,13 @@ describe("viz primitives render", () => {
   it("Sparkline renders a polyline, and — for empty data", () => {
     expect(html(<Sparkline values={[1, 3, 2, 5]} />)).toContain("<polyline");
     expect(html(<Sparkline values={[]} />)).toContain("—");
+  });
+
+  it("ColumnChart renders a column per datum, empty-safe", () => {
+    const out = html(<ColumnChart data={[{ label: "Jan", value: 10, display: "10" }, { label: "Feb", value: 20, display: "20" }]} />);
+    expect(out).toContain("Jan");
+    expect(out).toContain("Feb");
+    expect(html(<ColumnChart data={[]} />)).toContain("No data");
   });
 
   it("HeatCell applies an alpha-suffixed background and renders children", () => {
