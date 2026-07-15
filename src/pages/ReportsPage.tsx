@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Button, Badge } from "../components/ui/primitives";
-import { Stat, RankBars, Bar } from "../components/ui/viz";
+import { Stat, RankBars, Bar, ColumnChart, Scatter, Donut } from "../components/ui/viz";
 import { money as fmtMoney, ratio as fmtRatio, compact, healthTone } from "../lib/format";
 import { DEFAULT_SETTINGS } from "../lib/calc";
 import { rollup, type RollupRow } from "../lib/calc/rollup";
@@ -87,10 +87,17 @@ export default function ReportsPage() {
       },
       channels, recommendations, shifts: opt.shifts,
     };
+    const channelsViz = channelStats.map((c) => ({
+      name: c.channelName,
+      roiNet: c.revenueRoi.ok ? c.revenueRoi.value : null,
+      incremental: c.incrementalRevenue.ok ? c.incrementalRevenue.value : 0,
+      investment: c.totalInvestment,
+    }));
     return {
       summary: buildManagementSummary(input),
       portfolio: input.portfolio,
       channels,
+      channelsViz,
       shifts: opt.shifts,
     };
   }, [rows.data]);
@@ -137,6 +144,39 @@ export default function ReportsPage() {
         <Stat label="Total investment" value={fmtMoney(report.portfolio.totalInvestment)} />
         <Stat label="Campaigns" value={report.portfolio.campaigns} />
       </section>
+
+      {/* Visual summary — charts lead the report. */}
+      {report.channelsViz.length > 0 && (
+        <div className="mb-4 grid gap-4 lg:grid-cols-3 print:grid-cols-3">
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Net ROI by channel</h3>
+            <ColumnChart
+              height={190}
+              data={[...report.channelsViz].sort((a, b) => (b.roiNet ?? -Infinity) - (a.roiNet ?? -Infinity)).map((c) => ({
+                label: c.name, value: c.roiNet ?? 0, display: fmtRatio(c.roiNet),
+                tone: c.roiNet != null ? healthTone(c.roiNet, { good: 1, warn: 0 }) : "slate",
+              }))}
+            />
+          </Card>
+          <Card>
+            <h3 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">Channel efficiency</h3>
+            <p className="mb-2 text-xs text-slate-400">ROI vs investment; bubble = incremental. Above the line = profitable.</p>
+            <Scatter
+              xLabel="Investment" yLabel="Net ROI"
+              points={report.channelsViz.map((c) => {
+                const maxIncr = Math.max(1, ...report.channelsViz.map((x) => Math.max(0, x.incremental)));
+                return { x: c.investment, y: c.roiNet ?? 0, label: c.name, tone: c.roiNet != null ? healthTone(c.roiNet, { good: 1, warn: 0 }) : "slate", r: 5 + (Math.max(0, c.incremental) / maxIncr) * 12 };
+              })}
+            />
+          </Card>
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Investment by channel</h3>
+            {report.portfolio.totalInvestment > 0 ? (
+              <Donut size={150} data={report.channelsViz.filter((c) => c.investment > 0).map((c) => ({ label: c.name, value: c.investment }))} centerValue={`AED ${compact(report.portfolio.totalInvestment)}`} />
+            ) : <p className="text-sm text-slate-400">No investment recorded.</p>}
+          </Card>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Section title="Performance overview" items={summary.overview} />

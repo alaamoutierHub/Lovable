@@ -27,14 +27,21 @@ export default function AnalyticsPage() {
   const rowsQ = useAnalyticsRows(activeOrgId);
   const [channel, setChannel] = useState("all");
   const [status, setStatus] = useState("all");
+  const [period, setPeriod] = useState("all");
 
   const all = rowsQ.data ?? [];
   const channelOpts = useMemo(() => Array.from(new Set(all.map((r) => r.channelName))).sort(), [all]);
   const statusOpts = useMemo(() => Array.from(new Set(all.map((r) => r.status))).sort(), [all]);
 
+  const inPeriod = (r: AnalyticsRow): boolean => {
+    if (period === "all") return true;
+    if (!r.startDate) return false;
+    const q = Math.ceil(Number(r.startDate.slice(5, 7)) / 3);
+    return `q${q}` === period;
+  };
   const rows = useMemo(
-    () => all.filter((r) => (channel === "all" || r.channelName === channel) && (status === "all" || r.status === status)),
-    [all, channel, status],
+    () => all.filter((r) => (channel === "all" || r.channelName === channel) && (status === "all" || r.status === status) && inPeriod(r)),
+    [all, channel, status, period],
   );
 
   const d = useMemo(() => {
@@ -101,6 +108,16 @@ export default function AnalyticsPage() {
             <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-36">
               <option value="all">All statuses</option>
               {statusOpts.map((s) => <option key={s} value={s}>{s}</option>)}
+            </Select>
+          </label>
+          <label className="text-xs text-slate-500">
+            <span className="mb-1 block">Period</span>
+            <Select value={period} onChange={(e) => setPeriod(e.target.value)} className="w-32">
+              <option value="all">All time</option>
+              <option value="q1">Q1</option>
+              <option value="q2">Q2</option>
+              <option value="q3">Q3</option>
+              <option value="q4">Q4</option>
             </Select>
           </label>
         </div>
