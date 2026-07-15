@@ -12,6 +12,7 @@ import LandingPage from "./pages/LandingPage";
 // Route-level code splitting — each module loads on demand, keeping the initial
 // bundle small. The app shell + auth + landing stay eager (needed on first paint).
 const Overview = lazy(() => import("./pages/Overview"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const MasterDataPage = lazy(() => import("./pages/MasterDataPage"));
 const IntegrationsSettingsPage = lazy(() => import("./pages/IntegrationsSettingsPage"));
 const PlannerPage = lazy(() => import("./pages/PlannerPage"));
@@ -62,6 +63,7 @@ export default function App() {
                   }
                 >
                   <Route path="/overview" element={<Overview />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/planner" element={<PlannerPage />} />
                   <Route path="/evaluations" element={<EvaluationPage />} />
                   <Route path="/scenarios" element={<ScenariosPage />} />

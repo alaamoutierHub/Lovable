@@ -3,7 +3,7 @@
 // sensible markup — the closest we can get to "it renders" without a DOM.
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Stat, Bar, RankBars, Gauge, Donut, Sparkline, HeatCell, ColumnChart } from "./viz";
+import { Stat, Bar, RankBars, Gauge, Donut, Sparkline, HeatCell, ColumnChart, LineChart, Scatter, StackedBar } from "./viz";
 
 const html = (el: React.ReactElement) => renderToStaticMarkup(el);
 
@@ -71,6 +71,27 @@ describe("viz primitives render", () => {
     expect(out).toContain("Jan");
     expect(out).toContain("Feb");
     expect(html(<ColumnChart data={[]} />)).toContain("No data");
+  });
+
+  it("LineChart renders polylines + legend, empty-safe", () => {
+    const out = html(<LineChart labels={["Jan", "Feb", "Mar"]} series={[{ name: "Incr", values: [1, 3, 2], hex: "#0f766e", area: true }]} />);
+    expect(out).toContain("<polyline");
+    expect(out).toContain("Incr");
+    expect(html(<LineChart labels={[]} series={[]} />)).toContain("No data");
+  });
+
+  it("Scatter renders a point per datum with a break-even line for negatives", () => {
+    const out = html(<Scatter points={[{ x: 5000, y: 2.1, label: "Amazon" }, { x: 3000, y: -0.3, label: "Noon" }]} xLabel="Investment" yLabel="ROI" />);
+    expect((out.match(/<circle/g) || []).length).toBe(2);
+    expect(out).toContain("Investment");
+    expect(html(<Scatter points={[]} />)).toContain("No data");
+  });
+
+  it("StackedBar renders proportional segments with legend %", () => {
+    const out = html(<StackedBar data={[{ label: "Media", value: 60 }, { label: "Trade", value: 40 }]} />);
+    expect(out).toContain("Media");
+    expect(out).toContain("60%");
+    expect(html(<StackedBar data={[{ label: "x", value: 0 }]} />)).toContain("No data");
   });
 
   it("HeatCell applies an alpha-suffixed background and renders children", () => {
