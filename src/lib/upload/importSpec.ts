@@ -21,9 +21,11 @@ export function specFor(entity: MasterEntityKey): ImportSpec {
   return { key: entity, label: def.label, fields: def.fields, uniqueField };
 }
 
-/** Suggest a source-header → field mapping by case/space-insensitive match. */
+/** Suggest a source-header → field mapping by case/punctuation-insensitive match.
+ *  Strips ALL non-alphanumerics so template headers like "SKU code*" or
+ *  "Country (ISO-2)" still map to their fields. */
 export function autoMap(spec: ImportSpec, headers: string[]): Record<string, string> {
-  const norm = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, "");
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
   const map: Record<string, string> = {};
   for (const f of spec.fields) {
     const target = norm(f.key);
@@ -78,9 +80,10 @@ export function validateRows(
       }
     }
 
-    // duplicate detection on the unique field
-    const keyVal = values[spec.uniqueField];
-    if (keyVal !== "") {
+    // duplicate detection on the unique field (skipped when there is no unique
+    // field, e.g. transaction imports like plans/actuals which allow duplicates).
+    const keyVal = spec.uniqueField ? values[spec.uniqueField] : "";
+    if (spec.uniqueField && keyVal != null && keyVal !== "") {
       const nk = normKey(keyVal);
       if (seen.has(nk)) errors.push(`Duplicate ${spec.uniqueField} within file`);
       else if (existingKeys.has(nk)) errors.push(`${spec.uniqueField} already exists`);
