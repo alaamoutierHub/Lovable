@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Can } from "../components/guards";
 import { Button, Card, Field, Input, Badge } from "../components/ui/primitives";
 import { SettingsTabs } from "../components/SettingsTabs";
 import {
   MASTER_ENTITIES, MasterEntityKey, useMasterList, useCreateMaster,
-  useSoftDeleteMaster, type Row,
+  useUpdateMaster, useSoftDeleteMaster, type Row,
 } from "../lib/data/masterData";
 
 export default function MasterDataPage() {
@@ -15,31 +15,78 @@ export default function MasterDataPage() {
 
   const list = useMasterList(entity, activeOrgId);
   const create = useCreateMaster(entity, activeOrgId);
+  const update = useUpdateMaster(entity, activeOrgId);
   const del = useSoftDeleteMaster(entity, activeOrgId);
 
   const [form, setForm] = useState<Record<string, string>>({});
   const [formErr, setFormErr] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  // Inline edit state: the row being edited and its draft values.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [editErr, setEditErr] = useState<string | null>(null);
+
+  function resetEntity(k: MasterEntityKey) {
+    setEntity(k); setForm({}); setFormErr(null); setSearch("");
+    setEditingId(null); setEditForm({}); setEditErr(null);
+  }
+
+  // Build a values object from a string draft, applying required checks + number coercion.
+  function collect(draft: Record<string, string>): { values: Record<string, unknown> } | { error: string } {
+    for (const f of def.fields) {
+      if (f.required && !draft[f.key]?.trim()) return { error: `${f.label} is required.` };
+    }
+    const values: Record<string, unknown> = {};
+    for (const f of def.fields) {
+      const raw = draft[f.key];
+      if (raw == null || raw === "") continue;
+      values[f.key] = f.type === "number" ? Number(raw) : raw;
+    }
+    return { values };
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setFormErr(null);
-    for (const f of def.fields) {
-      if (f.required && !form[f.key]?.trim()) {
-        setFormErr(`${f.label} is required.`);
-        return;
-      }
-    }
-    const values: Record<string, unknown> = {};
-    for (const f of def.fields) {
-      const raw = form[f.key];
-      if (raw == null || raw === "") continue;
-      values[f.key] = f.type === "number" ? Number(raw) : raw;
-    }
-    create.mutate(values, {
+    const res = collect(form);
+    if ("error" in res) { setFormErr(res.error); return; }
+    create.mutate(res.values, {
       onSuccess: () => setForm({}),
       onError: (e) => setFormErr((e as Error).message),
     });
   }
+
+  function startEdit(row: Row) {
+    const draft: Record<string, string> = {};
+    for (const f of def.fields) {
+      const v = row[f.key];
+      draft[f.key] = v == null ? "" : String(v);
+    }
+    setEditingId(row.id);
+    setEditForm(draft);
+    setEditErr(null);
+  }
+
+  function saveEdit(id: string) {
+    setEditErr(null);
+    const res = collect(editForm);
+    if ("error" in res) { setEditErr(res.error); return; }
+    update.mutate(
+      { id, values: res.values },
+      {
+        onSuccess: () => { setEditingId(null); setEditForm({}); },
+        onError: (e) => setEditErr((e as Error).message),
+      },
+    );
+  }
+
+  const rows = list.data ?? [];
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => String(r[def.titleField] ?? "").toLowerCase().includes(q));
+  }, [rows, search, def.titleField]);
 
   return (
     <div>
@@ -51,7 +98,7 @@ export default function MasterDataPage() {
         {(Object.keys(MASTER_ENTITIES) as MasterEntityKey[]).map((k) => (
           <button
             key={k}
-            onClick={() => { setEntity(k); setForm({}); setFormErr(null); }}
+            onClick={() => resetEntity(k)}
             className={`rounded-lg px-3 py-1.5 text-sm ${
               entity === k
                 ? "bg-brand text-brand-fg"
@@ -86,16 +133,27 @@ export default function MasterDataPage() {
         </Can>
 
         <Card className="lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="font-semibold">{def.label}</h3>
-            <Badge>{list.data?.length ?? 0}</Badge>
+            <div className="flex items-center gap-2">
+              <Input
+                className="w-48"
+                placeholder={`Filter by ${def.fields[0]?.label.toLowerCase() ?? "name"}…`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <Badge>{filtered.length}</Badge>
+            </div>
           </div>
           {list.isLoading && <p className="text-sm text-slate-500">Loading…</p>}
           {list.isError && <p className="text-sm text-red-600">{(list.error as Error).message}</p>}
           {list.data && list.data.length === 0 && (
             <p className="text-sm text-slate-400">No {def.label.toLowerCase()} yet.</p>
           )}
-          {list.data && list.data.length > 0 && (
+          {list.data && list.data.length > 0 && filtered.length === 0 && (
+            <p className="text-sm text-slate-400">No {def.label.toLowerCase()} match “{search}”.</p>
+          )}
+          {filtered.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -105,28 +163,66 @@ export default function MasterDataPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {list.data.map((row: Row) => (
-                    <tr key={row.id} className="border-b border-slate-100 dark:border-slate-800">
-                      {def.fields.map((f) => (
-                        <td key={f.key} className="py-2 pr-4 text-slate-700 dark:text-slate-200">
-                          {String(row[f.key] ?? "—")}
+                  {filtered.map((row: Row) => {
+                    const isEditing = editingId === row.id;
+                    return (
+                      <tr key={row.id} className="border-b border-slate-100 dark:border-slate-800 align-top">
+                        {def.fields.map((f) => (
+                          <td key={f.key} className="py-2 pr-4 text-slate-700 dark:text-slate-200">
+                            {isEditing ? (
+                              <Input
+                                type={f.type === "number" ? "number" : "text"}
+                                value={editForm[f.key] ?? ""}
+                                onChange={(e) => setEditForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                              />
+                            ) : (
+                              String(row[f.key] ?? "—")
+                            )}
+                          </td>
+                        ))}
+                        <td className="py-2 text-right whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="flex items-center justify-end gap-1">
+                              {editErr && <span className="mr-1 text-xs text-red-600">{editErr}</span>}
+                              <Button
+                                onClick={() => saveEdit(row.id)}
+                                disabled={update.isPending}
+                                className="px-2 py-1 text-xs"
+                              >
+                                {update.isPending ? "Saving…" : "Save"}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                className="px-2 py-1 text-xs"
+                                onClick={() => { setEditingId(null); setEditErr(null); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1">
+                              <Can permission="edit">
+                                <Button variant="ghost" className="px-2 py-1 text-xs" onClick={() => startEdit(row)}>
+                                  Edit
+                                </Button>
+                              </Can>
+                              <Can permission="delete">
+                                <Button
+                                  variant="ghost"
+                                  className="px-2 py-1 text-xs text-red-600"
+                                  onClick={() => {
+                                    if (confirm(`Delete this ${def.singular}?`)) del.mutate(row.id);
+                                  }}
+                                >
+                                  Delete
+                                </Button>
+                              </Can>
+                            </div>
+                          )}
                         </td>
-                      ))}
-                      <td className="py-2 text-right">
-                        <Can permission="delete">
-                          <Button
-                            variant="ghost"
-                            className="text-red-600"
-                            onClick={() => {
-                              if (confirm(`Delete this ${def.singular}?`)) del.mutate(row.id);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </Can>
-                      </td>
-                    </tr>
-                  ))}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
