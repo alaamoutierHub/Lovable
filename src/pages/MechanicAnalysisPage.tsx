@@ -1,19 +1,14 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Badge } from "../components/ui/primitives";
+import { Stat, Bar } from "../components/ui/viz";
+import { money, pct, ratio, healthTone, toneText } from "../lib/format";
 import { DEFAULT_SETTINGS, type Calc } from "../lib/calc";
 import { aggregateByMechanic, type MechanicStats } from "../lib/mechanic/aggregate";
 import { useMechanicPlanRows } from "../lib/data/mechanicData";
 
-const money = (v: number | Calc, cur = "AED") => {
-  const n = typeof v === "number" ? v : v.ok ? v.value : null;
-  return n == null ? "—" : `${cur} ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-};
-const pct = (c: Calc | number | null) => {
-  const n = typeof c === "number" ? c : c && c.ok ? c.value : null;
-  return n == null ? "—" : `${(n * 100).toFixed(1)}%`;
-};
-const ratio = (c: Calc) => (c.ok ? c.value.toFixed(2) : "—");
+// Bridge the pipeline's Calc values to lib/format's number-based helpers.
+const cv = (c: Calc): number | null => (c.ok ? c.value : null);
 
 type SortKey = "revenueRoi" | "incrementalRevenue" | "revenueUpliftPct" | "aspDilutionPct" | "campaigns";
 const COLS: { key: SortKey; label: string }[] = [
@@ -42,6 +37,22 @@ export default function MechanicAnalysisPage() {
     return [...s].sort((a, b) => (asc ? 1 : -1) * (sortVal(a, sortKey) - sortVal(b, sortKey)));
   }, [rows.data, sortKey, asc]);
 
+  // Summary tiles + inline-bar column maxima — order-independent, so safe over resorted rows.
+  const summary = useMemo(() => {
+    const totalIncr = stats.reduce((a, s) => a + (s.incrementalRevenue.ok ? s.incrementalRevenue.value : 0), 0);
+    const totalInv = stats.reduce((a, s) => a + s.totalInvestment, 0);
+    const campaigns = stats.reduce((a, s) => a + s.campaigns, 0);
+    const blendedRoi = totalInv > 0 ? (totalIncr - totalInv) / totalInv : null;
+    const best = stats.reduce<MechanicStats | null>((b, s) => {
+      const v = s.revenueRoi.ok ? s.revenueRoi.value : -Infinity;
+      const bv = b && b.revenueRoi.ok ? b.revenueRoi.value : -Infinity;
+      return v > bv ? s : b;
+    }, null);
+    const maxIncr = Math.max(0, ...stats.map((s) => (s.incrementalRevenue.ok ? s.incrementalRevenue.value : 0)));
+    const maxRoi = Math.max(0, ...stats.map((s) => (s.revenueRoi.ok ? s.revenueRoi.value : 0)));
+    return { totalIncr, campaigns, blendedRoi, best, maxIncr, maxRoi };
+  }, [stats]);
+
   const toggle = (k: SortKey) => {
     if (k === sortKey) setAsc((v) => !v);
     else { setSortKey(k); setAsc(false); }
@@ -57,8 +68,23 @@ export default function MechanicAnalysisPage() {
         </p>
       </header>
 
+      {stats.length > 0 && (
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Top mechanic" value={summary.best?.mechanicName ?? "—"} hint="Highest net ROI" />
+          <Stat label="Incremental rev" value={money(summary.totalIncr)} tone={summary.totalIncr > 0 ? "green" : "slate"} hint="All mechanics" />
+          <Stat
+            label="Blended Net ROI"
+            value={ratio(summary.blendedRoi)}
+            tone={summary.blendedRoi != null ? healthTone(summary.blendedRoi, { good: 1, warn: 0 }) : "slate"}
+            hint="Portfolio re-derived"
+          />
+          <Stat label="Campaigns" value={summary.campaigns} hint={`${stats.length} mechanic(s)`} />
+        </div>
+      )}
+
       <Card>
         {rows.isLoading && <p className="text-sm text-slate-500">Loading…</p>}
+        {rows.isError && <p className="text-sm text-red-600">{(rows.error as Error).message}</p>}
         {!rows.isLoading && stats.length === 0 && (
           <p className="text-sm text-slate-400">No saved plans with a mechanic yet. Select a mechanic when saving plans in the Planner.</p>
         )}
@@ -70,7 +96,13 @@ export default function MechanicAnalysisPage() {
                   <th className="py-2 pr-4">#</th>
                   <th className="py-2 pr-4">Mechanic</th>
                   {COLS.map((c) => (
-                    <th key={c.key} className="cursor-pointer py-2 pr-4 hover:text-slate-600" onClick={() => toggle(c.key)}>
+                    <th
+                      key={c.key}
+                      className={`cursor-pointer py-2 pr-4 hover:text-slate-600 ${
+                        c.key === "incrementalRevenue" || c.key === "revenueRoi" ? "min-w-[10rem]" : ""
+                      }`}
+                      onClick={() => toggle(c.key)}
+                    >
                       {c.label}{sortKey === c.key ? (asc ? " ▲" : " ▼") : ""}
                     </th>
                   ))}
@@ -87,13 +119,24 @@ export default function MechanicAnalysisPage() {
                       {i === 0 ? <Badge tone="green">1</Badge> : <span className="text-slate-400">{i + 1}</span>}
                     </td>
                     <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-100">{s.mechanicName}</td>
-                    <td className="py-2 pr-4">{money(s.incrementalRevenue)}</td>
-                    <td className="py-2 pr-4 font-semibold">{ratio(s.revenueRoi)}</td>
-                    <td className="py-2 pr-4">{pct(s.revenueUpliftPct)}</td>
-                    <td className="py-2 pr-4">{pct(s.aspDilutionPct)}</td>
+                    <td className="min-w-[10rem] py-2 pr-4">
+                      <Bar value={cv(s.incrementalRevenue) ?? 0} max={summary.maxIncr} tone="slate" label={money(cv(s.incrementalRevenue))} />
+                    </td>
+                    <td className="min-w-[10rem] py-2 pr-4">
+                      <Bar
+                        value={cv(s.revenueRoi) ?? 0}
+                        max={summary.maxRoi}
+                        tone={s.revenueRoi.ok ? healthTone(s.revenueRoi.value, { good: 1, warn: 0 }) : "slate"}
+                        label={ratio(cv(s.revenueRoi))}
+                      />
+                    </td>
+                    <td className="py-2 pr-4">{pct(cv(s.revenueUpliftPct))}</td>
+                    <td className={`py-2 pr-4 font-medium ${toneText[healthTone(s.aspDilutionPct, { good: 0.02, warn: 0.05, higherIsBetter: false })]}`}>
+                      {pct(s.aspDilutionPct)}
+                    </td>
                     <td className="py-2 pr-4">{s.campaigns}</td>
                     <td className="py-2 pr-4">{s.costPerIncrementalUnit != null ? money(s.costPerIncrementalUnit) : "—"}</td>
-                    <td className="py-2 pr-4">{pct(s.investmentIntensity)}</td>
+                    <td className="py-2 pr-4">{pct(cv(s.investmentIntensity))}</td>
                     <td className="py-2 pr-4">{s.bestChannel ?? "—"}</td>
                     <td className="py-2 pr-4">{s.skus}</td>
                   </tr>

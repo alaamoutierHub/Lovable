@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Button, Badge } from "../components/ui/primitives";
+import { Stat, RankBars, Bar } from "../components/ui/viz";
+import { money as fmtMoney, ratio as fmtRatio, compact, healthTone } from "../lib/format";
 import { DEFAULT_SETTINGS } from "../lib/calc";
 import { rollup, type RollupRow } from "../lib/calc/rollup";
 import { buildMatrix } from "../lib/matrix/matrix";
@@ -26,7 +28,7 @@ export default function ReportsPage() {
   const [copied, setCopied] = useState(false);
   const ai = useAiSummary();
 
-  const summary = useMemo(() => {
+  const report = useMemo(() => {
     const data = rows.data ?? [];
     const matrix = buildMatrix(data, DEFAULT_SETTINGS);
     const cells = Object.entries(matrix.cells);
@@ -85,9 +87,15 @@ export default function ReportsPage() {
       },
       channels, recommendations, shifts: opt.shifts,
     };
-    return buildManagementSummary(input);
+    return {
+      summary: buildManagementSummary(input),
+      portfolio: input.portfolio,
+      channels,
+      shifts: opt.shifts,
+    };
   }, [rows.data]);
 
+  const summary = report.summary;
   const emailText = useMemo(() => summaryToEmailText(summary), [summary]);
 
   const copyEmail = async () => {
@@ -113,12 +121,71 @@ export default function ReportsPage() {
         <p className="text-base font-medium text-slate-800 dark:text-slate-100">{summary.headline}</p>
       </Card>
 
+      {/* KPI hero strip — computed portfolio roll-up at a glance. */}
+      <section className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat
+          label="Incremental revenue"
+          value={fmtMoney(report.portfolio.incrementalRevenue)}
+          tone={report.portfolio.incrementalRevenue != null && report.portfolio.incrementalRevenue > 0 ? "green" : "slate"}
+        />
+        <Stat
+          label="Net ROI (blended)"
+          value={fmtRatio(report.portfolio.revenueRoiNet)}
+          tone={report.portfolio.revenueRoiNet != null ? healthTone(report.portfolio.revenueRoiNet, { good: 1, warn: 0 }) : "slate"}
+          hint="(Incr − Inv) / Inv"
+        />
+        <Stat label="Total investment" value={fmtMoney(report.portfolio.totalInvestment)} />
+        <Stat label="Campaigns" value={report.portfolio.campaigns} />
+      </section>
+
       <div className="grid gap-4 md:grid-cols-2">
         <Section title="Performance overview" items={summary.overview} />
-        <Section title="Channel priorities" items={summary.channelPriorities} />
+        <Card>
+          <h3 className="mb-2 font-semibold">Channel priorities</h3>
+          {report.channels.length > 0 && (
+            <div className="mb-3 border-b border-slate-100 pb-3 dark:border-slate-800">
+              <div className="mb-1.5 text-xs font-semibold uppercase text-slate-400">Net ROI by channel</div>
+              <RankBars
+                data={[...report.channels]
+                  .sort((a, b) => (b.roiNet ?? -Infinity) - (a.roiNet ?? -Infinity))
+                  .map((c) => ({
+                    label: c.name,
+                    value: c.roiNet ?? 0,
+                    display: fmtRatio(c.roiNet),
+                    tone: c.roiNet != null ? healthTone(c.roiNet, { good: 1, warn: 0 }) : "slate",
+                  }))}
+              />
+            </div>
+          )}
+          <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-200">
+            {summary.channelPriorities.map((it, i) => (
+              <li key={i} className="flex gap-2"><span className="text-slate-400">•</span><span>{it}</span></li>
+            ))}
+          </ul>
+        </Card>
         <Section title="Best investments" items={summary.bestInvestments} tone="green" />
         <Section title="Underperforming investments" items={summary.underperformers} tone="red" />
-        <Section title="Recommended budget shifts" items={summary.recommendedShifts} />
+        <Card>
+          <h3 className="mb-2 font-semibold">Recommended budget shifts</h3>
+          {report.shifts.length > 0 && (
+            <div className="mb-3 space-y-1.5 border-b border-slate-100 pb-3 dark:border-slate-800">
+              {(() => {
+                const maxAmt = Math.max(...report.shifts.map((s) => s.amount), 1);
+                return report.shifts.map((s, i) => (
+                  <div key={i} className="grid grid-cols-[9rem_1fr] items-center gap-2 text-xs">
+                    <span className="truncate text-slate-600 dark:text-slate-300" title={`${s.from} → ${s.to}`}>{s.from} → {s.to}</span>
+                    <Bar value={s.amount} max={maxAmt} tone="amber" label={`AED ${compact(s.amount)}`} />
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
+          <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-200">
+            {summary.recommendedShifts.map((it, i) => (
+              <li key={i} className="flex gap-2"><span className="text-slate-400">•</span><span>{it}</span></li>
+            ))}
+          </ul>
+        </Card>
         <Section title="Key risks" items={summary.risks} tone="amber" />
       </div>
 

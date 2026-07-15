@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Badge } from "../components/ui/primitives";
+import { Gauge, RankBars, HeatCell } from "../components/ui/viz";
+import { type Tone } from "../lib/format";
 import { DEFAULT_SETTINGS, type Calc } from "../lib/calc";
 import { buildMatrix, cellKey, type MatrixCell } from "../lib/matrix/matrix";
 import { useMatrixPlanRows } from "../lib/data/matrixData";
@@ -25,6 +27,16 @@ const BAND_STYLE: Record<RecoBand, string> = {
   test_and_learn: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
 };
 const CONF_TONE = { high: "green", medium: "amber", low: "red", insufficient: "slate" } as const;
+
+// Band → health tone (for the gauge) and a distinct fill hex (for the heat cell).
+const BAND_TONE: Record<RecoBand, Tone> = {
+  scale: "green", maintain: "green", test_controlled: "amber",
+  revise_reduce: "amber", stop_reallocate: "red", test_and_learn: "slate",
+};
+const BAND_HEX: Record<RecoBand, string> = {
+  scale: "#10b981", maintain: "#14b8a6", test_controlled: "#f59e0b",
+  revise_reduce: "#f97316", stop_reallocate: "#ef4444", test_and_learn: "#94a3b8",
+};
 
 const METRIC_LABEL: Record<string, string> = {
   revenueRoi: "Revenue ROI", revenueUplift: "Revenue uplift", unitUplift: "Unit uplift",
@@ -108,14 +120,25 @@ export default function SkuChannelMatrixPage() {
                         const reco = scored[key];
                         if (!cell || !reco) return <td key={chan.id} className="p-1"><div className="rounded p-2 text-center text-slate-300">·</div></td>;
                         const active = selKey === key;
+                        // Continuous score drives fill intensity (floored so a
+                        // low-score cell still shows its band tint); score-80 reads
+                        // hotter than score-61 within the same band.
+                        const intensity = 0.18 + 0.82 * ((reco.score ?? 0) / 100);
                         return (
                           <td key={chan.id} className="p-1">
                             <button
                               onClick={() => setSelected({ sku: sku.id, chan: chan.id })}
-                              className={`w-full rounded p-2 text-left transition ${BAND_STYLE[reco.band]} ${active ? "ring-2 ring-slate-500" : ""}`}
+                              className={`block w-full rounded transition ${active ? "ring-2 ring-slate-500" : ""}`}
                             >
-                              <div className="text-xs font-semibold">{BAND_LABEL[reco.band]}</div>
-                              <div className="text-xs">{reco.score != null ? `Score ${reco.score.toFixed(0)}` : "—"} · ROI {ratio(cell.revenueRoi)}</div>
+                              <HeatCell
+                                intensity={intensity}
+                                hex={BAND_HEX[reco.band]}
+                                className="p-2 text-left text-slate-900 dark:text-slate-50"
+                                title={`${BAND_LABEL[reco.band]} · Score ${reco.score != null ? reco.score.toFixed(0) : "—"} · ROI ${ratio(cell.revenueRoi)}`}
+                              >
+                                <div className="text-xs font-semibold">{BAND_LABEL[reco.band]}</div>
+                                <div className="text-xs">{reco.score != null ? `Score ${reco.score.toFixed(0)}` : "—"} · ROI {ratio(cell.revenueRoi)}</div>
+                              </HeatCell>
                             </button>
                           </td>
                         );
@@ -141,26 +164,33 @@ export default function SkuChannelMatrixPage() {
                   <Badge tone={CONF_TONE[selReco.confidence]}>{selReco.confidence}</Badge>
                 </div>
               </div>
-              <div className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-50">
-                {selReco.score != null ? selReco.score.toFixed(0) : "—"}<span className="text-sm font-normal text-slate-400">/100</span>
+              <div className="mb-3 flex items-center gap-4">
+                <Gauge
+                  value={selReco.score ?? 0}
+                  tone={BAND_TONE[selReco.band]}
+                  label="score / 100"
+                  center={selReco.score != null ? selReco.score.toFixed(0) : "—"}
+                />
+                <dl className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1">
+                  <dt className="text-slate-500">Campaigns</dt><dd className="text-right">{selCell.campaigns}</dd>
+                  <dt className="text-slate-500">Incremental rev</dt><dd className="text-right">{money(selCell.incrementalRevenue)}</dd>
+                  <dt className="text-slate-500">Net ROI</dt><dd className="text-right">{ratio(selCell.revenueRoi)}</dd>
+                  <dt className="text-slate-500">Revenue uplift</dt><dd className="text-right">{pct(selCell.revenueUpliftPct)}</dd>
+                  <dt className="text-slate-500">Investment</dt><dd className="text-right">{money(selCell.totalInvestment)}</dd>
+                </dl>
               </div>
-              <dl className="grid grid-cols-2 gap-x-3 gap-y-1">
-                <dt className="text-slate-500">Campaigns</dt><dd className="text-right">{selCell.campaigns}</dd>
-                <dt className="text-slate-500">Incremental rev</dt><dd className="text-right">{money(selCell.incrementalRevenue)}</dd>
-                <dt className="text-slate-500">Net ROI</dt><dd className="text-right">{ratio(selCell.revenueRoi)}</dd>
-                <dt className="text-slate-500">Revenue uplift</dt><dd className="text-right">{pct(selCell.revenueUpliftPct)}</dd>
-                <dt className="text-slate-500">Investment</dt><dd className="text-right">{money(selCell.totalInvestment)}</dd>
-              </dl>
 
               {selReco.drivers.length > 0 && (
                 <div className="mt-3">
                   <div className="mb-1 text-xs font-semibold uppercase text-slate-400">Score drivers</div>
-                  {selReco.drivers.map((d) => (
-                    <div key={d.metric} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{METRIC_LABEL[d.metric] ?? d.metric}</span>
-                      <span className="font-medium">{(d.contribution * 100).toFixed(1)}</span>
-                    </div>
-                  ))}
+                  <RankBars
+                    data={selReco.drivers.map((d) => ({
+                      label: METRIC_LABEL[d.metric] ?? d.metric,
+                      value: d.contribution * 100,
+                      display: (d.contribution * 100).toFixed(1),
+                      tone: d.contribution >= 0 ? "green" : "red",
+                    }))}
+                  />
                 </div>
               )}
 

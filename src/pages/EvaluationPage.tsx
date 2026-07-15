@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Can } from "../components/guards";
-import { Button, Card, Field, Input, Badge } from "../components/ui/primitives";
+import { Button, Card, Field, Input, Select, Badge } from "../components/ui/primitives";
+import { Gauge } from "../components/ui/viz";
+import { healthTone, toneText, type Tone } from "../lib/format";
 import { DEFAULT_SETTINGS, type Calc } from "../lib/calc";
 import { evaluatePromotion, type ActualInput, type Outcome, type PlannedSnapshot } from "../lib/evaluation/evaluate";
 import { usePlanList } from "../lib/data/planner";
@@ -12,6 +14,7 @@ const money = (v: number | null, cur = "AED") =>
 const pctN = (v: number | null) => (v == null ? "Not Calculable" : `${(v * 100).toFixed(1)}%`);
 const ratioN = (v: number | null) => (v == null ? "Not Calculable" : v.toFixed(2));
 const calcNum = (c: Calc) => (c.ok ? c.value : null);
+const tone = (v: number | null, o: { good: number; warn: number; higherIsBetter?: boolean }): Tone => (v == null ? "slate" : healthTone(v, o));
 
 const OUTCOME_TONE: Record<Outcome, "green" | "amber" | "red"> = {
   scale: "green", maintain: "green", test_controlled: "amber", revise_reduce: "amber", stop_reallocate: "red",
@@ -58,6 +61,24 @@ export default function EvaluationPage() {
       totalInvestment: c.totalInvestment ?? null,
     };
   }, [plans.data, planId]);
+
+  // When a plan is linked, prefill baseline/forecast/target/currency from it so
+  // the evaluator doesn't re-type known values (still fully editable after).
+  useEffect(() => {
+    if (!planId) return;
+    const p: any = plans.data?.find((x: any) => x.id === planId);
+    if (!p) return;
+    const c = (p.calc ?? {}) as any;
+    setF((s) => ({
+      ...s,
+      currency: p.currency ?? s.currency,
+      baselineRevenue: c.baselineRevenue != null ? String(c.baselineRevenue) : s.baselineRevenue,
+      baselineUnits: c.baselineUnits != null ? String(c.baselineUnits) : s.baselineUnits,
+      forecastRevenue: c.forecastRevenue != null ? String(c.forecastRevenue) : s.forecastRevenue,
+      targetRevenue: c.targetRevenue != null ? String(c.targetRevenue) : s.targetRevenue,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId]);
 
   const evaluation = useMemo(() => {
     const input: ActualInput = {
@@ -115,14 +136,13 @@ export default function EvaluationPage() {
         <Card className="xl:col-span-2">
           <h3 className="mb-3 font-semibold">Actual results</h3>
 
-          <Field label="Link to a saved plan (optional — enables planned-vs-actual)">
-            <select value={planId} onChange={(e) => setPlanId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800">
+          <Field label="Link to a saved plan (optional — enables planned-vs-actual)" hint="Linking a plan prefills baseline, forecast and target below.">
+            <Select value={planId} onChange={(e) => setPlanId(e.target.value)}>
               <option value="">— standalone actuals —</option>
               {(plans.data ?? []).map((p: any) => (
                 <option key={p.id} value={p.id}>{p.notes || p.id.slice(0, 8)} · {p.status}</option>
               ))}
-            </select>
+            </Select>
           </Field>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,15 +194,25 @@ export default function EvaluationPage() {
 
           <Card>
             <h3 className="mb-2 font-semibold">Actual metrics</h3>
+            {(calcNum(a.forecastAccuracyDisplay) != null || calcNum(a.targetAchievementPct) != null) && (
+              <div className="mb-3 flex flex-wrap justify-around gap-2">
+                {calcNum(a.forecastAccuracyDisplay) != null && (
+                  <Gauge value={(calcNum(a.forecastAccuracyDisplay) as number) * 100} size={80} label="Forecast accuracy"
+                    tone={tone((calcNum(a.forecastAccuracyDisplay) as number) * 100, { good: 85, warn: 60 })} />
+                )}
+                {calcNum(a.targetAchievementPct) != null && (
+                  <Gauge value={(calcNum(a.targetAchievementPct) as number) * 100} size={80} label="Target achievement"
+                    tone={tone((calcNum(a.targetAchievementPct) as number) * 100, { good: 100, warn: 80 })} />
+                )}
+              </div>
+            )}
             <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
-              <Metric label="Incremental rev" v={money(calcNum(a.incrementalRevenue), f.currency)} />
-              <Metric label="Revenue uplift" v={pctN(calcNum(a.revenueUpliftPct))} />
-              <Metric label="Net ROI" v={ratioN(calcNum(a.revenueRoi))} />
+              <Metric label="Incremental rev" v={money(calcNum(a.incrementalRevenue), f.currency)} tone={tone(calcNum(a.incrementalRevenue), { good: 0.0001, warn: 0 })} />
+              <Metric label="Revenue uplift" v={pctN(calcNum(a.revenueUpliftPct))} tone={tone(calcNum(a.revenueUpliftPct), { good: 0.0001, warn: 0 })} />
+              <Metric label="Net ROI" v={ratioN(calcNum(a.revenueRoi))} tone={tone(calcNum(a.revenueRoi), { good: 1, warn: 0 })} />
               <Metric label="Cost/incr unit" v={money(calcNum(a.costPerIncrementalUnit), f.currency)} />
               <Metric label="Investment" v={money(calcNum(a.totalInvestment), f.currency)} />
-              <Metric label="Forecast accuracy" v={pctN(calcNum(a.forecastAccuracyDisplay))} />
               <Metric label="Forecast variance" v={money(calcNum(a.forecastVariance), f.currency)} />
-              <Metric label="Target achievement" v={pctN(calcNum(a.targetAchievementPct))} />
             </dl>
           </Card>
 
@@ -216,6 +246,7 @@ export default function EvaluationPage() {
           <h3 className="font-semibold">Saved evaluations</h3>
           <Badge>{actualsList.data?.length ?? 0}</Badge>
         </div>
+        {actualsList.isLoading && <p className="text-sm text-slate-500">Loading…</p>}
         {actualsList.data && actualsList.data.length === 0 && <p className="text-sm text-slate-400">No evaluations yet.</p>}
         {actualsList.data && actualsList.data.length > 0 && (
           <div className="overflow-x-auto">
@@ -254,11 +285,11 @@ function Chk({ label, checked, on }: { label: string; checked: boolean; on: (e: 
     </label>
   );
 }
-function Metric({ label, v }: { label: string; v: string }) {
+function Metric({ label, v, tone: t }: { label: string; v: string; tone?: Tone }) {
   return (
     <>
       <dt className="text-slate-500">{label}</dt>
-      <dd className="text-right font-medium text-slate-800 dark:text-slate-100">{v}</dd>
+      <dd className={`text-right font-medium ${t ? toneText[t] : "text-slate-800 dark:text-slate-100"}`}>{v}</dd>
     </>
   );
 }

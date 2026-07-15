@@ -1,18 +1,41 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth/AuthProvider";
 import { Card, Badge } from "../components/ui/primitives";
+import { RankBars } from "../components/ui/viz";
+import { compact, toneFill, type Tone } from "../lib/format";
 import { buildCalendar, type CalPlan } from "../lib/calendar/calendar";
 import { useCalendarPlans } from "../lib/data/calendarData";
 
 const money = (v: number, cur = "AED") => `${cur} ${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
-const STATUS_TONE: Record<string, "slate" | "green" | "amber" | "red"> = {
+const STATUS_TONE: Record<string, Tone> = {
   draft: "slate", submitted: "amber", under_review: "amber", approved: "green",
   rejected: "red", active: "green", completed: "slate", evaluated: "slate", archived: "slate",
 };
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthLabel = (key: string) => `${MONTH_NAMES[+key.slice(5, 7) - 1]} ${key.slice(0, 4)}`;
+
+// Portion of a YYYY-MM month covered by a promo's [startDate, endDate] range,
+// as {offset, width} percentages for a within-month timeline bar. Uses the
+// startDate/endDate already on CalPlan — presentation only, no engine change.
+function monthSpan(key: string, p: CalPlan): { offset: number; width: number } | null {
+  if (!p.startDate || !p.endDate) return null;
+  const y = +key.slice(0, 4);
+  const mo = +key.slice(5, 7);
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  const monthStart = `${key}-01`;
+  const monthEnd = `${key}-${String(daysInMonth).padStart(2, "0")}`;
+  const s = p.startDate > monthStart ? p.startDate : monthStart;
+  const e = p.endDate < monthEnd ? p.endDate : monthEnd;
+  if (s > e) return null;
+  const sDay = +s.slice(8, 10);
+  const eDay = +e.slice(8, 10);
+  return {
+    offset: ((sDay - 1) / daysInMonth) * 100,
+    width: (Math.max(1, eDay - sDay + 1) / daysInMonth) * 100,
+  };
+}
 
 export default function PromotionCalendarPage() {
   const { activeOrgId } = useAuth();
@@ -27,6 +50,12 @@ export default function PromotionCalendarPage() {
   );
   const cal = useMemo(() => buildCalendar(filtered), [filtered]);
   const byId = useMemo(() => Object.fromEntries(plans.map((p) => [p.id, p])), [plans]);
+  // Plans involved in an overlap — toned red on the timeline.
+  const conflictIds = useMemo(() => {
+    const s = new Set<string>();
+    cal.conflicts.forEach((c) => { s.add(c.aId); s.add(c.bId); });
+    return s;
+  }, [cal.conflicts]);
 
   return (
     <div>
@@ -62,6 +91,20 @@ export default function PromotionCalendarPage() {
         <Card><p className="text-sm text-slate-400">No dated promotions{statusFilter !== "all" ? " for this status" : ""}. Add start/end dates on plans in the Planner.</p></Card>
       )}
 
+      {cal.months.length > 0 && (
+        <Card className="mb-4">
+          <div className="mb-2 text-xs font-semibold uppercase text-slate-400">Spend by month</div>
+          <RankBars
+            data={cal.months.map((m) => ({
+              label: monthLabel(m.key),
+              value: m.spend,
+              display: `AED ${compact(m.spend)}`,
+              tone: "green",
+            }))}
+          />
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {cal.months.map((m) => (
           <Card key={m.key}>
@@ -69,14 +112,28 @@ export default function PromotionCalendarPage() {
               <h3 className="font-semibold">{monthLabel(m.key)}</h3>
               <span className="text-xs text-slate-500">{money(m.spend)}</span>
             </div>
-            <ul className="space-y-1">
+            <ul className="space-y-2.5">
               {m.planIds.map((id) => {
                 const p: CalPlan | undefined = byId[id];
                 if (!p) return null;
+                const conflicted = conflictIds.has(p.id);
+                const tone: Tone = conflicted ? "red" : STATUS_TONE[p.status] ?? "slate";
+                const span = monthSpan(m.key, p);
                 return (
-                  <li key={id} className="flex items-center justify-between gap-2 text-sm">
-                    <span className="truncate text-slate-700 dark:text-slate-200">{p.label}</span>
-                    <Badge tone={STATUS_TONE[p.status] ?? "slate"}>{p.status}</Badge>
+                  <li key={id} className="text-sm">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="truncate text-slate-700 dark:text-slate-200" title={p.label}>{p.label}</span>
+                      <Badge tone={tone}>{conflicted ? "conflict" : p.status}</Badge>
+                    </div>
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                      {span && (
+                        <div
+                          className={`absolute inset-y-0 rounded-full ${toneFill[tone]}`}
+                          style={{ left: `${span.offset}%`, width: `${span.width}%` }}
+                          title={`${p.startDate} → ${p.endDate}`}
+                        />
+                      )}
+                    </div>
                   </li>
                 );
               })}
